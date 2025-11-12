@@ -7,6 +7,14 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useWebsockets } from "../hook/use-websockets";
 import { MessageList } from "./message-list";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function Chat() {
   useWebsockets();
@@ -46,16 +54,24 @@ export function Chat() {
   };
 
   return (
-    <div>
-      <MessageList messages={query.data} />
-      <form onSubmit={handleSend}>
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Escribe tu mensaje..."
-        />
-        <Button type="submit">Enviar</Button>
-      </form>
-    </div>
+    <Card className="flex h-full flex-col justify-between">
+      <CardHeader>
+        <CardTitle>Charla Global</CardTitle>
+        <CardDescription>Canal para hablar globalmente</CardDescription>
+      </CardHeader>
+      <CardContent className="h-full">
+        <MessageList messages={query.data} />
+      </CardContent>
+      <CardFooter>
+        <form onSubmit={handleSend} className="flex w-full gap-6">
+          <Input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Escribe tu mensaje..."
+          />
+          <Button type="submit">Enviar</Button>
+        </form>
+      </CardFooter>
+    </Card>
   );
 }
