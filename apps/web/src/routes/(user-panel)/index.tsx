@@ -12,7 +12,7 @@ export const Route = createFileRoute("/(user-panel)/")({
 function RouteComponent() {
   const { data } = useSession();
   return (
-    <div>
+    <div className="h-dvh p-8">
       Hola! {data?.user.name} <LogOutButton />
       <Chat />
     </div>
