@@ -1,0 +1,23 @@
+{
+  "name": "@meteor/auth",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "type": "module",
+  "devDependencies": {
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "better-auth": "catalog:",
+    "zod": "catalog:",
+    "dotenv": "catalog:",
+    "@meteor/db": "workspace:*"
+  }
+}

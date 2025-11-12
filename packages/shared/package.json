@@ -1,0 +1,23 @@
+{
+  "name": "@meteor/shared",
+  "type": "module",
+  "exports": {
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./src/types/index.ts"
+    },
+    "./schemas": {
+      "types": "./dist/schemas/index.d.ts",
+      "default": "./src/schemas/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

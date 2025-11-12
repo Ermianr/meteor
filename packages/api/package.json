@@ -1,0 +1,25 @@
+{
+  "name": "@meteor/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "hono": "catalog:",
+    "dotenv": "catalog:",
+    "server": "workspace:*"
+  }
+}

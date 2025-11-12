@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "main": "src/index.ts",
+  "type": "module",
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.4",
+    "@meteor/auth": "workspace:",
+    "@meteor/db": "workspace:",
+    "@meteor/shared": "workspace:",
+    "dotenv": "catalog:",
+    "hono": "catalog:",
+    "nanoid": "^5.1.6",
+    "zod": "catalog:",
+    "drizzle-orm": "catalog:"
+  },
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc -b",
+    "dev": "bun run --hot src/index.ts",
+    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+    "start": "bun run dist/index.js"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "private": true
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@meteor/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:drop": "drizzle-kit drop"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.6",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "postgres": "3.4.7",
+    "drizzle-orm": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  }
+}
