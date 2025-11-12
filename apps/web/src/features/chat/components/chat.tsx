@@ -54,7 +54,7 @@ export function Chat() {
   };
 
   return (
-    <Card className="flex h-full justify-between">
+    <Card className="flex h-full flex-col justify-between">
       <CardHeader>
         <CardTitle>Charla Global</CardTitle>
         <CardDescription>Canal para hablar globalmente</CardDescription>
