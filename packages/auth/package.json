@@ -12,7 +12,8 @@
   },
   "type": "module",
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@meteor/typescript-config": "workspace:*"
   },
   "dependencies": {
     "better-auth": "catalog:",

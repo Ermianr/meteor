@@ -21,7 +21,8 @@
   },
   "devDependencies": {
     "drizzle-kit": "0.31.6",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@meteor/typescript-config": "workspace:*"
   },
   "dependencies": {
     "postgres": "3.4.7",

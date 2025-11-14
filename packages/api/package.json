@@ -15,7 +15,8 @@
     "build": "tsc"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@meteor/typescript-config": "workspace:*"
   },
   "dependencies": {
     "hono": "catalog:",

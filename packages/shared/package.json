@@ -1,6 +1,7 @@
 {
   "name": "@meteor/shared",
   "type": "module",
+  "private": true,
   "exports": {
     "./types": {
       "types": "./dist/types/index.d.ts",
@@ -18,6 +19,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "@meteor/typescript-config": "workspace:*"
   }
 }

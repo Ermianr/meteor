@@ -15,6 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { UserPanel } from "./user-panel";
+import { Spinner } from "@/components/ui/spinner";
 
 export function Chat() {
   useWebsockets();
@@ -26,7 +28,8 @@ export function Chat() {
     },
   });
   const [text, setText] = useState("");
-  const { data } = useSession();
+  const { data, isPending } = useSession();
+
   const handleSend = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -54,24 +57,33 @@ export function Chat() {
   };
 
   return (
-    <Card className="flex h-full flex-col justify-between">
-      <CardHeader>
-        <CardTitle>Charla Global</CardTitle>
-        <CardDescription>Canal para hablar globalmente</CardDescription>
-      </CardHeader>
-      <CardContent className="h-full">
-        <MessageList messages={query.data} />
-      </CardContent>
-      <CardFooter>
-        <form onSubmit={handleSend} className="flex w-full gap-6">
-          <Input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Escribe tu mensaje..."
-          />
-          <Button type="submit">Enviar</Button>
-        </form>
-      </CardFooter>
-    </Card>
+    <>
+      {isPending ? (
+        <Spinner />
+      ) : (
+        <div className="grid h-dvh w-full grid-cols-6 grid-rows-6 gap-4 p-2">
+          <UserPanel session={data} />
+          <Card className="col-span-5 col-start-2 row-span-6 row-start-1">
+            <CardHeader>
+              <CardTitle>Charla Global</CardTitle>
+              <CardDescription>Canal para hablar globalmente</CardDescription>
+            </CardHeader>
+            <CardContent className="h-full">
+              <MessageList messages={query.data} />
+            </CardContent>
+            <CardFooter>
+              <form onSubmit={handleSend} className="flex w-full gap-6">
+                <Input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Escribe tu mensaje..."
+                />
+                <Button type="submit">Enviar</Button>
+              </form>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
+    </>
   );
 }

@@ -35,6 +35,6 @@
     "db:generate": "turbo -F @meteor/db db:generate",
     "db:migrate": "turbo -F @meteor/db db:migrate",
     "db:drop": "turbo -F @meteor/db db:drop",
-    "check-updates": "bunx taze -r"
+    "compile": "turbo -F server compile"
   }
 }
