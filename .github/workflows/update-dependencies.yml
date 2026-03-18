@@ -25,6 +25,12 @@ jobs:
   update:
     name: Update ${{ matrix.group.id }}
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/meteor
+      BETTER_AUTH_SECRET: 0123456789abcdef0123456789abcdef
+      BETTER_AUTH_URL: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3001
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
     strategy:
       fail-fast: false
       matrix:
