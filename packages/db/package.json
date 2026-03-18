@@ -22,16 +22,16 @@
   },
   "dependencies": {
     "@meteor/env": "workspace:*",
-    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "catalog:",
     "dotenv": "catalog:",
-    "pg": "^8.17.1",
+    "pg": "^8.20.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@meteor/config": "workspace:*",
-    "@types/pg": "^8.16.0",
-    "prisma": "^7.2.0",
+    "@types/pg": "^8.18.0",
+    "prisma": "^7.5.0",
     "typescript": "^5.9.3"
   }
 }
