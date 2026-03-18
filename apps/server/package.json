@@ -15,7 +15,7 @@
     "@meteor/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
-    "hono": "^4.8.2",
+    "hono": "^4.12.8",
     "zod": "catalog:"
   },
   "devDependencies": {
