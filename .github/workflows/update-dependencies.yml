@@ -1,0 +1,98 @@
+name: Update dependencies
+
+on:
+  schedule:
+    - cron: "0 14 * * 1"
+  workflow_dispatch:
+    inputs:
+      group:
+        description: Dependency group to update
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - catalog-shared
+          - web-stack
+          - server-data
+          - tooling
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update ${{ matrix.group.id }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group:
+          - id: catalog-shared
+            branch: chore/update-catalog-shared-deps
+            title: "chore(deps): update catalog shared dependencies"
+          - id: web-stack
+            branch: chore/update-web-stack-deps
+            title: "chore(deps): update web stack dependencies"
+          - id: server-data
+            branch: chore/update-server-data-deps
+            title: "chore(deps): update server data dependencies"
+          - id: tooling
+            branch: chore/update-tooling-deps
+            title: "chore(deps): update tooling dependencies"
+
+    steps:
+      - name: Checkout repository
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        run: bun install --frozen-lockfile
+
+      - name: Update dependency manifests
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        env:
+          SUMMARY_FILE: ${{ runner.temp }}/update-summary-${{ matrix.group.id }}.md
+        run: >
+          bun .github/scripts/deps/update-deps.ts
+          --group=${{ matrix.group.id }}
+          --strategy=latest
+          --summary-file="${SUMMARY_FILE}"
+
+      - name: Refresh bun.lock
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        run: bun install
+
+      - name: Validate workspace types
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        run: bun run check-types
+
+      - name: Detect changes
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id
+        id: changes
+        shell: bash
+        run: |
+          if git diff --quiet --exit-code; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: (github.event_name != 'workflow_dispatch' || github.event.inputs.group == 'all' || github.event.inputs.group == matrix.group.id) && steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ matrix.group.branch }}
+          commit-message: ${{ matrix.group.title }}
+          title: ${{ matrix.group.title }}
+          body-path: ${{ runner.temp }}/update-summary-${{ matrix.group.id }}.md
+          delete-branch: true
+          labels: dependencies
