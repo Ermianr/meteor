@@ -74,10 +74,12 @@ export function applyDependencyUpdates(
   input: ApplyDependencyUpdatesInput,
 ): ApplyDependencyUpdatesResult {
   const rootManifest = structuredClone(input.rootManifest);
-  const workspaceManifests = input.workspaceManifests.map((workspaceManifest) => ({
-    ...workspaceManifest,
-    manifest: structuredClone(workspaceManifest.manifest),
-  }));
+  const workspaceManifests = input.workspaceManifests.map(
+    (workspaceManifest) => ({
+      ...workspaceManifest,
+      manifest: structuredClone(workspaceManifest.manifest),
+    }),
+  );
   const changes: DependencyChange[] = [];
 
   for (const packageName of input.groupPackages) {

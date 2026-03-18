@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { dependencyGroups, getDependencyGroup } from "./groups";
@@ -119,11 +119,14 @@ async function findWorkspacePackagePaths(
 ): Promise<string[]> {
   const workspaces = Array.isArray(rootManifest.workspaces)
     ? rootManifest.workspaces
-    : rootManifest.workspaces?.packages ?? ["apps/*", "packages/*"];
+    : (rootManifest.workspaces?.packages ?? ["apps/*", "packages/*"]);
   const packagePaths = new Set<string>();
 
   for (const workspacePattern of workspaces) {
-    const resolvedPaths = await expandWorkspacePattern(rootDir, workspacePattern);
+    const resolvedPaths = await expandWorkspacePattern(
+      rootDir,
+      workspacePattern,
+    );
 
     for (const resolvedPath of resolvedPaths) {
       packagePaths.add(resolvedPath);
@@ -194,7 +197,9 @@ async function fetchLatestVersion(packageName: string): Promise<string> {
   const payload = (await response.json()) as { version?: string };
 
   if (!payload.version) {
-    throw new Error(`Registry response for ${packageName} did not include version`);
+    throw new Error(
+      `Registry response for ${packageName} did not include version`,
+    );
   }
 
   return payload.version;
@@ -234,6 +239,8 @@ async function writeJsonFile(
   await writeFile(filePath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 }
 
-function isMissingDirectoryError(error: unknown): error is NodeJS.ErrnoException {
+function isMissingDirectoryError(
+  error: unknown,
+): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
