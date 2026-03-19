@@ -26,6 +26,7 @@
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "build": "bun run --filter '*' build",
+    "lint": "biome ci .",
     "check-types": "bun run --filter '*' check-types",
     "deps:update": "bun .github/scripts/deps/update-deps.ts",
     "dev:web": "bun run --filter web dev",

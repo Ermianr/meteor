@@ -10,7 +10,8 @@
     "includes": [
       "**",
       "!**/.next",
-			"!**/dist"
+      "!**/dist",
+      "!**/packages/db/prisma/generated"
     ]
   },
   "formatter": {
