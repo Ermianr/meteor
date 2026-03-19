@@ -10,6 +10,12 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/meteor
+      BETTER_AUTH_SECRET: better-auth-secret-better-auth-secret
+      BETTER_AUTH_URL: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3001
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
 
     steps:
       - name: Checkout repository
