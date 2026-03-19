@@ -22,7 +22,9 @@ jobs:
 
       - name: Load CI placeholder env
         # CI-only placeholders satisfy env validation during dependency install.
-        run: grep -Ev '^\s*($|#)' .env.example >> "$GITHUB_ENV"
+        run: |
+          grep -Ev '^\s*($|#)' apps/server/.env.example >> "$GITHUB_ENV"
+          grep -Ev '^\s*($|#)' apps/web/.env.example >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
