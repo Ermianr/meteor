@@ -10,12 +10,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/meteor
-      BETTER_AUTH_SECRET: better-auth-secret-better-auth-secret
-      BETTER_AUTH_URL: http://localhost:3000
-      CORS_ORIGIN: http://localhost:3001
-      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
 
     steps:
       - name: Checkout repository
@@ -25,6 +19,10 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: package.json
+
+      - name: Load CI placeholder env
+        # CI-only placeholders satisfy env validation during dependency install.
+        run: grep -Ev '^\s*($|#)' .env.example >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
