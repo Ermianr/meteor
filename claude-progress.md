@@ -79,3 +79,11 @@
   - **Sin tests automatizados**: el CI no corre tests porque no existen. Cuando `auth-002` (wiring Better-Auth) añada lógica real, considerar `services: postgres` + `bun test` o vitest.
   - **Sin cache**: si el job supera ~3 min, añadir `actions/cache` para `~/.bun/install/cache` y `.turbo/`.
 - Siguiente mejor paso: hacer commit de todos los cambios (workflow + dependabot + saneo Biome + scripts + docs), pushear a una rama feature (`feat/ci-cd-001`), abrir PR contra `main`, esperar al run verde, registrar la URL en `evidence` y mover `ci-cd-001` a `passing`.
+- **Ejecutado al final de la sesión 002**:
+  - Commit `0a5e624` ("ci: bootstrap GitHub Actions pipeline and Dependabot") en rama `feat/ci-cd-001`.
+  - Push a `origin/feat/ci-cd-001`.
+  - PR #3 abierto: https://github.com/Ermianr/meteor/pull/3.
+  - Job "Lint, build & typecheck" → pass en 24s. Run: https://github.com/Ermianr/meteor/actions/runs/25271145783.
+  - Otros checks del repo (no parte de `ci-cd-001`): GitGuardian pass, CodeQL Analyze pending, CodeRabbit pending — son herramientas externas.
+  - **Falta**: mergear el PR (decisión del usuario), confirmar el run verde sobre `main`, registrar esa URL y mover `ci-cd-001` a `passing`.
+  - Aviso del runner: `actions/checkout@v4` corre en Node.js 20 (deprecated a partir de 2026-06-02). Dependabot lo actualizará a v5 cuando esté disponible — no requiere acción manual.
