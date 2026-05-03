@@ -1,0 +1,52 @@
+name: Dependabot Bun lockfile sync
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  sync-lockfile:
+    name: Regenerate bun.lock for Dependabot PR
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.DEPENDABOT_AUTOMERGE_PAT }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
+      - name: Regenerate lockfile
+        run: bun install
+
+      - name: Verify lockfile is now frozen-clean
+        run: bun install --frozen-lockfile
+
+      - name: Commit and push if lockfile changed
+        run: |
+          git config user.name  "dependabot[bot]"
+          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain bun.lock)" ]]; then
+            git add bun.lock
+            git commit -m "chore(deps): sync bun.lock for Dependabot update"
+            git push
+          else
+            echo "bun.lock already in sync — nothing to do."
+          fi
