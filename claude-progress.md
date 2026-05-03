@@ -5,8 +5,8 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature activa: **ci-cd-002** (status `in_progress`) — PR #7 abierto con migración a `package-ecosystem: bun` (sin workflow auxiliar; se descarta por ahora para probar empíricamente si el cambio de ecosystem basta).
-- Bloqueo actual: para validar `ci-cd-002` hace falta mergear PR #7 y forzar un ciclo de Dependabot para observar si el primer PR fresco viene con `bun.lock` sincronizado.
+- Feature activa: ninguna. **ci-cd-002** pasó a `passing` tras evidencia ejecutable (PRs #8/#9/#10 verdes en CI bajo el ecosystem `bun`).
+- Bloqueo actual: ninguno. Próxima feature candidata: `ci-cd-003` (alinear `lucide-react` entre workspaces y mover `shadcn` a `devDependencies`), que conviene esperar a que se mergeen #9 y #10 para no rebasar a mano.
 
 ## Registro de Sesiones
 
@@ -110,12 +110,14 @@
   - Commit `f49b289` ("ci(github): migrate dependabot to bun ecosystem and add lockfile sync") pusheado a `origin/ci/dependabot-bun-lockfile`.
   - PR abierto: https://github.com/Ermianr/meteor/pull/7.
 - Cambio de approach a mitad de sesión: tras revisar el plan, el usuario optó por probar empíricamente si solo el cambio de ecosystem basta antes de comprometerse al workflow auxiliar (que arrastra PAT, `pull_request_target`, mantenimiento). El workflow se eliminó del PR #7 con commit posterior.
-- Pendiente para mover `ci-cd-002` a `passing` (acciones manuales del usuario):
-  1. Esperar el run del CI sobre PR #7 y mergear.
-  2. En GitHub: `Insights → Dependency graph → Dependabot → Check for updates` para forzar un ciclo nuevo sin esperar al lunes.
-  3. Observar el primer PR fresco que abra Dependabot:
-     - **Caso A (deseado)**: el PR trae `bun.lock` sincronizado y CI pasa verde. Para desbloquear los PRs viejos #5 y #6, cerrarlos con `gh pr close` y comentar `@dependabot recreate` en cada uno; Dependabot los reabre bajo el ecosystem `bun` y deberían pasar igual. Mover `ci-cd-002` a `passing`.
-     - **Caso B (bug dependabot-core#14223 aplica)**: el PR fresco sigue rompiendo en `--frozen-lockfile`. En ese punto, abrir nueva iteración con el workflow auxiliar (ya diseñado y verificado localmente; el archivo borrado en este PR está disponible en el commit `9d3f7a8` por si hace falta restaurarlo) + crear PAT `DEPENDABOT_AUTOMERGE_PAT`.
+- Resolución del experimento (Caso A confirmado):
+  - PR #7 mergeado a `main` (commit `a7a8eed`).
+  - Tras forzar `Check for updates`, Dependabot abrió 3 PRs frescos bajo el ecosystem `bun` con `bun.lock` regenerado y CI verde:
+    - PR #8 (`bun-minor-patch group`, 3 updates) — `Lint, build & typecheck` pass 22s, run https://github.com/Ermianr/meteor/actions/runs/25289179275/job/74138191233.
+    - PR #9 (`lucide-react 0.546.0 → 1.14.0`) — pass 20s, run https://github.com/Ermianr/meteor/actions/runs/25289183634/job/74138201230.
+    - PR #10 (`shadcn 3.8.5 → 4.6.0`) — pass 28s, run https://github.com/Ermianr/meteor/actions/runs/25289189718/job/74138215790.
+  - PRs viejos #5 y #6 cerrados con comentario "Superseded by #10/#9 under the new bun ecosystem".
+  - Conclusión: el bug `dependabot-core#14223` no aplica a este monorepo. El workflow auxiliar es complejidad innecesaria; queda disponible en el commit `9d3f7a8` por si una regresión futura lo requiere.
 - Riesgos / follow-ups:
-  - **Follow-up `ci-cd-003`** (post-merge de #5 y #6): alinear `lucide-react` entre workspaces (`packages/ui` está en `^0.546.0`, `apps/web` está en `^1.8.0`) y mover `shadcn` de `dependencies` a `devDependencies` en `packages/ui` (es CLI, no runtime). Validar con `bun run check-types` que `lucide-react@1.x` no rompió iconos en `packages/ui/src/components/{label,sonner,dropdown-menu,checkbox,calendar}.tsx`.
-- Siguiente mejor paso: mergear PR #7 y forzar un ciclo de Dependabot para validar el experimento.
+  - **Follow-up `ci-cd-003`** (post-merge de #9 y #10): alinear `lucide-react` entre workspaces (hoy `^0.546.0` en `packages/ui` vs `^1.8.0` en `apps/web`) y mover `shadcn` de `dependencies` a `devDependencies` en `packages/ui` (es CLI, no runtime). Validar con `bun run check-types` que `lucide-react@1.x` no rompió iconos en `packages/ui/src/components/{label,sonner,dropdown-menu,checkbox,calendar}.tsx`.
+- Siguiente mejor paso: mergear PRs #9 y #10, luego abrir `ci-cd-003`.
