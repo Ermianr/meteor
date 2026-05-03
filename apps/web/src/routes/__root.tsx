@@ -11,7 +11,7 @@ import { evlogErrorHandler } from "evlog/nitro/v3";
 
 import appCss from "../index.css?url";
 
-export type RouterAppContext = {};
+export type RouterAppContext = Record<string, never>;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   server: {

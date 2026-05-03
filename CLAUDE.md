@@ -22,6 +22,12 @@ Luego selecciona exactamente una feature sin terminar y trabaja únicamente en e
 - No reescribas la lista de features para ocultar trabajo sin terminar.
 - No elimines ni debilites tests solo para que la tarea parezca completa.
 - Usa los artefactos del repositorio como la fuente de verdad.
+- Las features deben ser pull request jamás hacer un merge a main directo.
+- Seguir el formato convencional de commits y escribir mensajes claros que expliquen el qué y el porqué del cambio (siempre en inglés). Ejemplos:
+  - `ci: bootstrap GitHub Actions pipeline and Dependabot`
+  - `feat(auth): add login and register views`
+  - `fix(ui): correct date picker locale on Safari`
+  - `chore(deps): bump @tanstack/react-router to 1.169.0`
 
 ## Archivos Requeridos
 

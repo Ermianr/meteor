@@ -1,6 +1,6 @@
 {
   "project": "meteor",
-  "last_updated": "2026-05-02T15:00",
+  "last_updated": "2026-05-03T00:00",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -44,6 +44,34 @@
         "  - submit válido completo en /register: sin errores, sin mensajes en consola"
       ],
       "notes": "Muy importante usar tanstack form y los componentes de shadcn para esto. Alcance acordado: solo UI visual, sin wiring a Better-Auth (siguiente feature). Login: email + password. Register: username + email + birthdate + password + confirmPassword. Se añadió noValidate al <form> de ambos formularios para que la validación de HTML5 nativa no intercepte el submit antes de Zod (verificado: el popup del navegador 'Incluye un signo @...' ya no aparece y el mensaje 'Correo inválido' de Zod se muestra como FieldError)."
+    },
+    {
+      "id": "ci-cd-001",
+      "priority": 1,
+      "area": "Infraestructura",
+      "title": "Configurar CI/CD para el proyecto",
+      "user_visible_behavior": "No visible para el usuario final, pero esencial para el desarrollo eficiente y la entrega continua.",
+      "status": "in_progress",
+      "verification": [
+        "Configurar GitHub Actions para ejecutar lint, build y checking de formato en cada push y pull request",
+        "Configurar Dependabot para mantener las dependencias actualizadas y seguras",
+        "Configurar una action para actualizar las actions de GitHub automáticamente cuando haya nuevas versiones disponibles",
+        "Local: bun install --frozen-lockfile pasa sin diffs",
+        "Local: bun run check:ci (biome check) pasa con 0 errores y 0 warnings",
+        "Local: bun run build pasa (server + web) y genera apps/web/src/routeTree.gen.ts",
+        "Local: bun run check-types pasa en @meteor/ui, server y web",
+        "Remoto: el workflow .github/workflows/ci.yml debe correr verde sobre main al menos una vez (URL del run en evidence)",
+        "Remoto: dependabot.yml parseado sin errores en Insights → Dependency graph (ambos ecosistemas listados)"
+      ],
+      "evidence": [
+        "Local 2026-05-03: bun install --frozen-lockfile → 'no changes' (lockfile sincronizado).",
+        "Local 2026-05-03: bun run check:ci → 'Checked 63 files in 49ms. No fixes applied.' (0 errores, 0 warnings).",
+        "Local 2026-05-03: bun run build → 2 tasks successful (server build 192ms, web build 1.19s client + 616ms ssr) en 3.316s.",
+        "Local 2026-05-03: bun run check-types → 3 tasks successful (@meteor/ui, server, web) en 5.88s.",
+        "Remoto 2026-05-03: PR #3 (https://github.com/Ermianr/meteor/pull/3) — job 'Lint, build & typecheck' pass en 24s, run https://github.com/Ermianr/meteor/actions/runs/25271145783.",
+        "Pendiente remoto: run verde sobre main tras merge del PR (se llenará al mergear)."
+      ],
+      "notes": "Esta feature es crucial para asegurar la calidad del código y la eficiencia en el desarrollo. La configuración de CI/CD permitirá detectar errores rápidamente y facilitará la entrega continua de nuevas funcionalidades. Decisiones de esta sesión: trigger CI = push a main + PRs a main; añadido `check:ci` (biome sin --write) en root; añadido `check-types: tsc --noEmit` en apps/web; Dependabot semanal con grouping de minor/patch para npm + github-actions; sin auto-merge. Saneo de Biome preexistente: 18 archivos auto-formateados + 5 fixes manuales (RouterAppContext = Record<string, never>; field.tsx == → ===; field.tsx key={index} → key={error.message}; 2 biome-ignore justificados en role='group' y label primitive)."
     }
   ]
 }
