@@ -5,8 +5,8 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature sin terminar de mayor prioridad actual: **ci-cd-001** (status `in_progress`) — verificación local completa, falta confirmar el primer run verde del workflow en GitHub Actions tras push
-- Bloqueo actual: ninguno
+- Feature activa: **ci-cd-002** (status `in_progress`) — PR #7 abierto con migración a `package-ecosystem: bun` (sin workflow auxiliar; se descarta por ahora para probar empíricamente si el cambio de ecosystem basta).
+- Bloqueo actual: para validar `ci-cd-002` hace falta mergear PR #7 y forzar un ciclo de Dependabot para observar si el primer PR fresco viene con `bun.lock` sincronizado.
 
 ## Registro de Sesiones
 
@@ -87,3 +87,35 @@
   - Otros checks del repo (no parte de `ci-cd-001`): GitGuardian pass, CodeQL Analyze pending, CodeRabbit pending — son herramientas externas.
   - **Falta**: mergear el PR (decisión del usuario), confirmar el run verde sobre `main`, registrar esa URL y mover `ci-cd-001` a `passing`.
   - Aviso del runner: `actions/checkout@v4` corre en Node.js 20 (deprecated a partir de 2026-06-02). Dependabot lo actualizará a v5 cuando esté disponible — no requiere acción manual.
+
+### Sesión 003
+
+- Fecha: 2026-05-03
+- Objetivo: feature **ci-cd-002** — desbloquear PRs de Dependabot que fallaban con `error: lockfile had changes, but lockfile is frozen`.
+- Diagnóstico:
+  - PRs afectados: #5 (`shadcn 3.8.5 → 4.6.0`) y #6 (`lucide-react 0.546.0 → 1.14.0`).
+  - Causa raíz: `.github/dependabot.yml` declaraba `package-ecosystem: npm` pero el repo usa Bun (`bun.lock`, `packageManager: bun@1.3.13`). Dependabot bumpeaba `package.json` sin regenerar `bun.lock` y `bun install --frozen-lockfile` (paso 1 del CI) abortaba.
+  - Soporte oficial: `package-ecosystem: bun` está GA desde feb 2025 — es la migración correcta.
+  - Trampa: bug abierto [`dependabot-core#14223`](https://github.com/dependabot/dependabot-core/issues/14223) (reportado marzo 2026, confirmado abril 2026, **OPEN**) impide que Dependabot regenere `bun.lock` en repos con npm workspaces. `meteor` tiene workspaces (`apps/*`, `packages/*`), así que solo migrar el ecosystem no basta.
+- Plan acordado con el usuario: `C:\Users\Kevin Garcia\.claude\plans\idea-el-plan-para-golden-iverson.md`. Estrategia "ambas piezas": migrar ecosystem + workflow auxiliar como red de seguridad.
+- Completado en esta sesión:
+  - Branch `ci/dependabot-bun-lockfile` creada desde `main`.
+  - `.github/dependabot.yml`: cambio `package-ecosystem: npm` → `bun`, grupo `npm-minor-patch` → `bun-minor-patch`. El bloque `github-actions` no se tocó.
+  - `.github/workflows/dependabot-bun-lockfile.yml` creado: `pull_request_target` + filtro `github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'` + checkout con PAT (`secrets.DEPENDABOT_AUTOMERGE_PAT`) + `bun install` + verificación `--frozen-lockfile` + commit & push del lockfile si cambió. Idempotente.
+  - Verificación local sobre la rama:
+    - `bun install --frozen-lockfile` → `Checked 624 installs across 743 packages (no changes) [379.00ms]`.
+    - `bun run check:ci` → `Checked 63 files in 47ms. No fixes applied.`
+    - `bun run build` → 2 tasks successful, FULL TURBO.
+    - `bun run check-types` → 3 tasks successful, FULL TURBO.
+  - Commit `f49b289` ("ci(github): migrate dependabot to bun ecosystem and add lockfile sync") pusheado a `origin/ci/dependabot-bun-lockfile`.
+  - PR abierto: https://github.com/Ermianr/meteor/pull/7.
+- Cambio de approach a mitad de sesión: tras revisar el plan, el usuario optó por probar empíricamente si solo el cambio de ecosystem basta antes de comprometerse al workflow auxiliar (que arrastra PAT, `pull_request_target`, mantenimiento). El workflow se eliminó del PR #7 con commit posterior.
+- Pendiente para mover `ci-cd-002` a `passing` (acciones manuales del usuario):
+  1. Esperar el run del CI sobre PR #7 y mergear.
+  2. En GitHub: `Insights → Dependency graph → Dependabot → Check for updates` para forzar un ciclo nuevo sin esperar al lunes.
+  3. Observar el primer PR fresco que abra Dependabot:
+     - **Caso A (deseado)**: el PR trae `bun.lock` sincronizado y CI pasa verde. Para desbloquear los PRs viejos #5 y #6, cerrarlos con `gh pr close` y comentar `@dependabot recreate` en cada uno; Dependabot los reabre bajo el ecosystem `bun` y deberían pasar igual. Mover `ci-cd-002` a `passing`.
+     - **Caso B (bug dependabot-core#14223 aplica)**: el PR fresco sigue rompiendo en `--frozen-lockfile`. En ese punto, abrir nueva iteración con el workflow auxiliar (ya diseñado y verificado localmente; el archivo borrado en este PR está disponible en el commit `9d3f7a8` por si hace falta restaurarlo) + crear PAT `DEPENDABOT_AUTOMERGE_PAT`.
+- Riesgos / follow-ups:
+  - **Follow-up `ci-cd-003`** (post-merge de #5 y #6): alinear `lucide-react` entre workspaces (`packages/ui` está en `^0.546.0`, `apps/web` está en `^1.8.0`) y mover `shadcn` de `dependencies` a `devDependencies` en `packages/ui` (es CLI, no runtime). Validar con `bun run check-types` que `lucide-react@1.x` no rompió iconos en `packages/ui/src/components/{label,sonner,dropdown-menu,checkbox,calendar}.tsx`.
+- Siguiente mejor paso: mergear PR #7 y forzar un ciclo de Dependabot para validar el experimento.
