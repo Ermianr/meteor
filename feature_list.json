@@ -81,22 +81,21 @@
       "user_visible_behavior": "No visible al usuario final; los PRs automáticos de Dependabot deben terminar el job 'Lint, build & typecheck' en verde sin intervención manual.",
       "status": "in_progress",
       "verification": [
-        "Migración de package-ecosystem npm -> bun en .github/dependabot.yml (correcto a futuro; bug dependabot-core#14223 obliga a fallback)",
-        "Workflow auxiliar .github/workflows/dependabot-bun-lockfile.yml regenera bun.lock en PRs de dependabot[bot] vía pull_request_target + PAT",
+        "Migración de package-ecosystem npm -> bun en .github/dependabot.yml (Bun ecosystem GA desde feb 2025)",
         "Local: bun install --frozen-lockfile, bun run check:ci, bun run build, bun run check-types pasan sobre la rama ci/dependabot-bun-lockfile",
-        "Remoto: PR del workflow obtiene CI verde y se mergea",
-        "Manual: crear secret DEPENDABOT_AUTOMERGE_PAT (fine-grained PAT con Contents:write + Pull requests:write sobre meteor)",
-        "Remoto: tras merge + secret, comentar @dependabot rebase en PR #5 y PR #6; observar que el workflow auxiliar regenera bun.lock, hace push y CI re-corre verde",
-        "Remoto: forzar nuevo ciclo de Dependabot (Insights → Dependency graph → Check for updates) y confirmar que un PR nuevo cierra verde sin intervención"
+        "Remoto: PR #7 obtiene CI verde y se mergea",
+        "Experimento: tras merge, forzar Insights → Dependency graph → Check for updates y observar el primer PR fresco de Dependabot",
+        "Caso A (deseado): el PR fresco trae bun.lock sincronizado y CI pasa verde → el cambio de ecosystem basta. Cerrar PRs #5 y #6 con gh pr close y comentar @dependabot recreate en cada uno para que se reabran bajo el ecosystem bun.",
+        "Caso B (fallback, bug dependabot-core#14223 aplica): el PR fresco sigue rompiendo en --frozen-lockfile → reabrir feature ci-cd-002 con un PR adicional que añada el workflow auxiliar y configurar el PAT."
       ],
       "evidence": [
         "Local 2026-05-03: bun install --frozen-lockfile sobre ci/dependabot-bun-lockfile → 'no changes' (nada se rompe).",
         "Local 2026-05-03: bun run check:ci → 'Checked 63 files in 47ms. No fixes applied.'",
         "Local 2026-05-03: bun run build → 2 tasks successful, FULL TURBO.",
         "Local 2026-05-03: bun run check-types → 3 tasks successful, FULL TURBO.",
-        "Remoto 2026-05-03: PR #7 abierto en https://github.com/Ermianr/meteor/pull/7 con commit f49b289."
+        "Remoto 2026-05-03: PR #7 abierto en https://github.com/Ermianr/meteor/pull/7. Approach reducido a solo migrar ecosystem (npm -> bun); el workflow auxiliar se mantiene como fallback documentado en el plan, no en el código."
       ],
-      "notes": "Causa raíz: dependabot.yml declaraba package-ecosystem npm pero el repo usa Bun, así que Dependabot bumpeaba package.json sin regenerar bun.lock y CI fallaba en --frozen-lockfile. Bun ya está soportado en GA (feb 2025) pero el bug dependabot-core#14223 (open, abril 2026) impide que Dependabot regenere el lockfile en repos con npm workspaces (que es nuestro caso). Solución: cambiar ecosystem a bun (correcto a futuro) + workflow auxiliar como red de seguridad. Cuando upstream arregle #14223 el workflow queda no-op. Bloquea: feature solo pasa a passing tras (a) merge del PR #7, (b) creación manual del secret DEPENDABOT_AUTOMERGE_PAT, (c) PRs #5 y #6 cerrados en verde. Follow-up natural: ci-cd-003 = alinear lucide-react (^0.546.0 en packages/ui vs ^1.8.0 en apps/web) y mover shadcn de dependencies a devDependencies en packages/ui; se hace tras mergear #5 y #6."
+      "notes": "Causa raíz: dependabot.yml declaraba package-ecosystem npm pero el repo usa Bun, así que Dependabot bumpeaba package.json sin regenerar bun.lock y CI fallaba en --frozen-lockfile. Bun ya está soportado en GA desde feb 2025. Existe el bug dependabot-core#14223 (open, abril 2026) que reporta que Dependabot no regenera bun.lock en repos con workspaces, pero solo hay 2 confirmaciones de usuarios y no está claro que aplique 1:1 a este repo. Decisión: probar primero solo el cambio de ecosystem (PR #7) sin el workflow auxiliar; si el primer PR fresco de Dependabot trae bun.lock sincronizado, no hace falta más. Si el bug nos golpea, añadir el workflow auxiliar en una iteración posterior. Follow-up natural: ci-cd-003 = alinear lucide-react (^0.546.0 en packages/ui vs ^1.8.0 en apps/web) y mover shadcn de dependencies a devDependencies en packages/ui; se hace tras mergear #5 y #6."
     }
   ]
 }

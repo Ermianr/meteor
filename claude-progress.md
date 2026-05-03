@@ -5,8 +5,8 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature activa: **ci-cd-002** (status `in_progress`) — PR #7 abierto con migración a `package-ecosystem: bun` + workflow auxiliar `dependabot-bun-lockfile.yml`. Bloqueado por: merge del PR + creación manual del secret `DEPENDABOT_AUTOMERGE_PAT`.
-- Bloqueo actual: para mover `ci-cd-002` a `passing` se necesitan acciones manuales del usuario en GitHub (merge + secret + comentar `@dependabot rebase` en PRs #5 y #6).
+- Feature activa: **ci-cd-002** (status `in_progress`) — PR #7 abierto con migración a `package-ecosystem: bun` (sin workflow auxiliar; se descarta por ahora para probar empíricamente si el cambio de ecosystem basta).
+- Bloqueo actual: para validar `ci-cd-002` hace falta mergear PR #7 y forzar un ciclo de Dependabot para observar si el primer PR fresco viene con `bun.lock` sincronizado.
 
 ## Registro de Sesiones
 
@@ -109,13 +109,13 @@
     - `bun run check-types` → 3 tasks successful, FULL TURBO.
   - Commit `f49b289` ("ci(github): migrate dependabot to bun ecosystem and add lockfile sync") pusheado a `origin/ci/dependabot-bun-lockfile`.
   - PR abierto: https://github.com/Ermianr/meteor/pull/7.
+- Cambio de approach a mitad de sesión: tras revisar el plan, el usuario optó por probar empíricamente si solo el cambio de ecosystem basta antes de comprometerse al workflow auxiliar (que arrastra PAT, `pull_request_target`, mantenimiento). El workflow se eliminó del PR #7 con commit posterior.
 - Pendiente para mover `ci-cd-002` a `passing` (acciones manuales del usuario):
   1. Esperar el run del CI sobre PR #7 y mergear.
-  2. Crear PAT fine-grained con `Contents: read/write` + `Pull requests: read/write` sobre `meteor` y guardarlo como repo secret `DEPENDABOT_AUTOMERGE_PAT`.
-  3. En PR #5 y #6 comentar `@dependabot rebase` (o `@dependabot recreate` si rebase no genera nuevo SHA). Verificar que el workflow auxiliar regenera `bun.lock`, commitea, y CI re-corre verde.
-  4. Forzar un ciclo nuevo de Dependabot vía `Insights → Dependency graph → Check for updates` y confirmar que un PR fresco pasa sin intervención.
+  2. En GitHub: `Insights → Dependency graph → Dependabot → Check for updates` para forzar un ciclo nuevo sin esperar al lunes.
+  3. Observar el primer PR fresco que abra Dependabot:
+     - **Caso A (deseado)**: el PR trae `bun.lock` sincronizado y CI pasa verde. Para desbloquear los PRs viejos #5 y #6, cerrarlos con `gh pr close` y comentar `@dependabot recreate` en cada uno; Dependabot los reabre bajo el ecosystem `bun` y deberían pasar igual. Mover `ci-cd-002` a `passing`.
+     - **Caso B (bug dependabot-core#14223 aplica)**: el PR fresco sigue rompiendo en `--frozen-lockfile`. En ese punto, abrir nueva iteración con el workflow auxiliar (ya diseñado y verificado localmente; el archivo borrado en este PR está disponible en el commit `9d3f7a8` por si hace falta restaurarlo) + crear PAT `DEPENDABOT_AUTOMERGE_PAT`.
 - Riesgos / follow-ups:
-  - Si el PAT expira/revoca, el workflow auxiliar empieza a fallar con 403 al pushear. Mitigación: expiración 1 año + recordatorio, o migrar a GitHub App con `actions/create-github-app-token` (más complejo, mejor a largo plazo).
-  - `pull_request_target` ejecuta postinstall del PR. Riesgo aceptado: filtramos por `dependabot[bot]` (no fork humano) y ya tenemos esa misma superficie en `ci.yml`.
   - **Follow-up `ci-cd-003`** (post-merge de #5 y #6): alinear `lucide-react` entre workspaces (`packages/ui` está en `^0.546.0`, `apps/web` está en `^1.8.0`) y mover `shadcn` de `dependencies` a `devDependencies` en `packages/ui` (es CLI, no runtime). Validar con `bun run check-types` que `lucide-react@1.x` no rompió iconos en `packages/ui/src/components/{label,sonner,dropdown-menu,checkbox,calendar}.tsx`.
-- Siguiente mejor paso: mergear PR #7 y configurar el PAT.
+- Siguiente mejor paso: mergear PR #7 y forzar un ciclo de Dependabot para validar el experimento.
