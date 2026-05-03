@@ -1,0 +1,28 @@
+{
+  "project": "meteor",
+  "last_updated": "2026-05-02",
+  "rules": {
+    "single_active_feature": true,
+    "passing_requires_evidence": true,
+    "do_not_skip_verification": true
+  },
+  "status_legend": {
+    "not_started": "El trabajo no ha comenzado.",
+    "in_progress": "La feature es la tarea activa actual.",
+    "blocked": "El trabajo no puede continuar hasta que se resuelva un bloqueo documentado.",
+    "passing": "La verificación requerida ha sido exitosa y la evidencia está registrada."
+  },
+  "features": [
+    {
+      "id": "auth-001",
+      "priority": 1,
+      "area": "Autenticación",
+      "title": "Crear las vistas de login y registro",
+      "user_visible_behavior": "El usuario aún no verá absolutamente nada eso solo será el desarrollo de ambas vistas.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": "Muy importante usar tanstack form y los componentes de shadcn para esto."
+    }
+  ]
+}

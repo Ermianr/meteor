@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Kevin Garcia\\\\Desktop\\\\meteor\\\\apps\\\\web\" -Recurse -Depth 4)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Kevin Garcia\\\\Desktop\\\\meteor\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Kevin Garcia\\\\Desktop\\\\meteor\\\\apps\\\\web\\\\src\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName -replace [regex]::Escape\\(\"C:\\\\Users\\\\Kevin Garcia\\\\Desktop\\\\meteor\\\\apps\\\\web\"\\), \"\" })",
+      "Bash(bun run *)",
+      "Bash(bunx tsc *)",
+      "Bash(bunx biome *)",
+      "Bash(curl -s -o /tmp/login.html -w \"STATUS=%{http_code}\\\\nSIZE=%{size_download}\\\\n\" http://localhost:3001/login)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /tmp/register.html -w \"STATUS=%{http_code}\\\\nSIZE=%{size_download}\\\\n\" http://localhost:3001/register)",
+      "Bash(tasklist)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //F //PID 19548 //PID 13024 //PID 14468)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/register)",
+      "Bash(taskkill //F //PID 10352)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/login)",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_snapshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__click",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__fill_form",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__wait_for",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__list_console_messages",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__press_key",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_screenshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__fill",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__navigate_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__close_page",
+      "Bash(awk '{print $NF}')",
+      "Bash(xargs -I {} taskkill //F //PID {})",
+      "Bash(gh auth *)",
+      "Bash(gh repo *)",
+      "Bash(git add *)",
+      "Bash(git restore *)"
+    ]
+  }
+}
