@@ -1,6 +1,6 @@
 {
   "project": "meteor",
-  "last_updated": "2026-05-03T19:55",
+  "last_updated": "2026-05-03T21:37",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -51,7 +51,7 @@
       "area": "Infraestructura",
       "title": "Configurar CI/CD para el proyecto",
       "user_visible_behavior": "No visible para el usuario final, pero esencial para el desarrollo eficiente y la entrega continua.",
-      "status": "in_progress",
+      "status": "passing",
       "verification": [
         "Configurar GitHub Actions para ejecutar lint, build y checking de formato en cada push y pull request",
         "Configurar Dependabot para mantener las dependencias actualizadas y seguras",
@@ -101,6 +101,37 @@
         "Remoto 2026-05-03: PR #5 cerrado como superseded por #10; PR #6 cerrado como superseded por #9."
       ],
       "notes": "Causa raíz: dependabot.yml declaraba package-ecosystem npm pero el repo usa Bun, así que Dependabot bumpeaba package.json sin regenerar bun.lock y CI fallaba en --frozen-lockfile. Bun ya está soportado en GA desde feb 2025. Decisión validada empíricamente: solo cambiar el ecosystem bastó; el bug dependabot-core#14223 no aplica a este monorepo. El workflow auxiliar (`dependabot-bun-lockfile.yml`) quedó diseñado y disponible en el commit 9d3f7a8 en caso de regresión futura, pero no está en el árbol vivo. Follow-up: ci-cd-003 = alinear lucide-react (^0.546.0 en packages/ui vs ^1.8.0 en apps/web) y mover shadcn de dependencies a devDependencies en packages/ui; se hace tras mergear #9 y #10."
+    },
+    {
+      "id": "ci-cd-003",
+      "priority": 1,
+      "area": "Infraestructura",
+      "title": "Alinear versiones de lucide-react y shadcn entre web y ui",
+      "status": "passing",
+      "user_visible_behavior": "No visible al usuario final, pero esencial para mantener la coherencia de dependencias y evitar conflictos en el desarrollo.",
+      "verification": [
+        "Precondición: PR #9 (lucide-react 1.14.0) y PR #10 (shadcn 4.6.0) mergeados en main antes de empezar",
+        "Alinear lucide-react en el catálogo del workspace y consumirlo como catalog: desde apps/web y packages/ui",
+        "Mover shadcn de dependencies a devDependencies en packages/ui porque es CLI de mantenimiento, no runtime",
+        "Local: .\\init.ps1 se ejecuta; bun install pasa, pero bun test falla por ausencia de archivos test/spec (baseline existente, no verificación CI)",
+        "Local: bun install --frozen-lockfile pasa sin cambios",
+        "Local: bun run check:ci pasa con 0 errores y 0 warnings",
+        "Local: bun run build pasa (server + web)",
+        "Local: bun run check-types pasa en @meteor/ui, server y web"
+      ],
+      "evidence": [
+        "Remoto 2026-05-03: PR #9 mergeado a main (commit b81a182073b08d06f0c51dcc10cc85e63de57755) — https://github.com/Ermianr/meteor/pull/9.",
+        "Remoto 2026-05-03: PR #10 mergeado a main (commit 5547ab7ef34e214ac8368242f9447604418cd322) — https://github.com/Ermianr/meteor/pull/10.",
+        "Local 2026-05-03: root workspaces.catalog ahora contiene lucide-react ^1.14.0; apps/web y packages/ui consumen lucide-react como catalog:.",
+        "Local 2026-05-03: packages/ui declara shadcn ^4.6.0 en devDependencies; grep de imports runtime de shadcn no encontró usos.",
+        "Local 2026-05-03: bun install regeneró bun.lock tras mover dependencias.",
+        "Local 2026-05-03: bun install --frozen-lockfile → Checked 621 installs across 740 packages (no changes).",
+        "Local 2026-05-03: bun run check:ci → Checked 63 files in 116ms. No fixes applied.",
+        "Local 2026-05-03: bun run build → 2 tasks successful; server build complete in 1486ms; web client built in 1.95s y SSR built in 2.33s.",
+        "Local 2026-05-03: bun run check-types → 3 tasks successful (@meteor/ui, server, web) en 15.936s.",
+        "Baseline 2026-05-03: .\\init.ps1 falla en bun test porque no hay archivos **{.test,.spec,_test_,_spec_}.{js,ts,jsx,tsx}; el paso de install sí pasó."
+      ],
+      "notes": "Se centralizó lucide-react en el catálogo del workspace para evitar divergencia entre apps/web y packages/ui. shadcn queda como devDependency en packages/ui porque se usa como CLI para mantener componentes shadcn/ui, no como dependencia runtime. La verificación relevante de CI pasó completa; el fallo de .\\init.ps1 es el baseline preexistente de bun test sin archivos de prueba."
     }
   ]
 }

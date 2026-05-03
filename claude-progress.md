@@ -5,8 +5,8 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature activa: ninguna. **ci-cd-002** pasó a `passing` tras evidencia ejecutable (PRs #8/#9/#10 verdes en CI bajo el ecosystem `bun`).
-- Bloqueo actual: ninguno. Próxima feature candidata: `ci-cd-003` (alinear `lucide-react` entre workspaces y mover `shadcn` a `devDependencies`), que conviene esperar a que se mergeen #9 y #10 para no rebasar a mano.
+- Feature activa: ninguna. **ci-cd-003** pasó a `passing` tras evidencia ejecutable local; la rama de trabajo es `ci/ci-cd-003-align-ui-dependencies`.
+- Bloqueo actual: ninguno para CI. Baseline conocido: `./init.ps1` ejecuta `bun test` y falla porque aún no existen archivos `*.test`/`*.spec` en el repo.
 
 ## Registro de Sesiones
 
@@ -121,3 +121,33 @@
 - Riesgos / follow-ups:
   - **Follow-up `ci-cd-003`** (post-merge de #9 y #10): alinear `lucide-react` entre workspaces (hoy `^0.546.0` en `packages/ui` vs `^1.8.0` en `apps/web`) y mover `shadcn` de `dependencies` a `devDependencies` en `packages/ui` (es CLI, no runtime). Validar con `bun run check-types` que `lucide-react@1.x` no rompió iconos en `packages/ui/src/components/{label,sonner,dropdown-menu,checkbox,calendar}.tsx`.
 - Siguiente mejor paso: mergear PRs #9 y #10, luego abrir `ci-cd-003`.
+
+### Sesión 004
+
+- Fecha: 2026-05-03
+- Objetivo: implementar **ci-cd-003** — alinear la propiedad de dependencias de `lucide-react` y `shadcn` entre `apps/web` y `packages/ui`.
+- Completado:
+  - Rama creada desde `main`: `ci/ci-cd-003-align-ui-dependencies`.
+  - Precondición remota confirmada con `gh`: PR #9 (`lucide-react 0.546.0 → 1.14.0`) y PR #10 (`shadcn 3.8.5 → 4.6.0`) ya estaban mergeados en `main`.
+  - `package.json` del root: añadido `lucide-react` al `workspaces.catalog` con `^1.14.0`.
+  - `apps/web/package.json` y `packages/ui/package.json`: `lucide-react` ahora usa `catalog:`.
+  - `packages/ui/package.json`: `shadcn` movido de `dependencies` a `devDependencies`, porque es CLI de mantenimiento de componentes, no dependencia runtime.
+  - `bun.lock` regenerado con `bun install`.
+  - Verificado con grep que no hay imports runtime de `shadcn` en código JS/TS.
+- Ejecución de verificación:
+  - `./init.ps1` → `bun install` pasó, pero `bun test` falló con `0 test files matching **{.test,.spec,_test_,_spec_}.{js,ts,jsx,tsx}`. Queda documentado como baseline existente del script, no como fallo introducido por `ci-cd-003`.
+  - `bun install --frozen-lockfile` → `Checked 621 installs across 740 packages (no changes) [243.00ms]`.
+  - `bun run check:ci` → `Checked 63 files in 116ms. No fixes applied.`
+  - `bun run build` → 2 tasks successful; server build complete in 1486ms; web client build 1.95s y SSR build 2.33s.
+  - `bun run check-types` → 3 tasks successful (`@meteor/ui`, `server`, `web`) en 15.936s.
+- Archivos o artefactos actualizados:
+  - `package.json`
+  - `apps/web/package.json`
+  - `packages/ui/package.json`
+  - `bun.lock`
+  - `feature_list.json`
+  - `claude-progress.md`
+- Riesgo conocido o problema no resuelto:
+  - `./init.ps1` sigue fallando por ausencia de tests. Si se quiere que el baseline smoke sea verde antes de tener tests reales, hay que cambiar ese script a una verificación existente (`bun run check:ci`, por ejemplo) o añadir un test mínimo real.
+  - No se creó commit ni PR en esta sesión porque no hubo una petición explícita de commit.
+- Siguiente mejor paso: revisar el diff, commitear con mensaje convencional como `chore(deps): align ui dependency ownership`, pushear la rama y abrir PR contra `main`.
