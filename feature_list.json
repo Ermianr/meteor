@@ -1,6 +1,6 @@
 {
   "project": "meteor",
-  "last_updated": "2026-05-02",
+  "last_updated": "2026-05-02T15:00",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -19,10 +19,31 @@
       "area": "Autenticación",
       "title": "Crear las vistas de login y registro",
       "user_visible_behavior": "El usuario aún no verá absolutamente nada eso solo será el desarrollo de ambas vistas.",
-      "status": "not_started",
-      "verification": [],
-      "evidence": [],
-      "notes": "Muy importante usar tanstack form y los componentes de shadcn para esto."
+      "status": "passing",
+      "verification": [
+        "cd apps/web && bunx tsc --noEmit",
+        "bunx biome check apps/web/src/features apps/web/src/routes/login.tsx apps/web/src/routes/register.tsx packages/ui/src/lib/calendar-locales.ts",
+        "bun run dev:web (puerto 3001) y abrir /login y /register en navegador",
+        "/login: submit con campos vacíos muestra 'Correo inválido' y 'Mínimo 8 caracteres'",
+        "/register: submit con datos malos muestra mensaje específico por campo, incluido 'Las contraseñas no coinciden'",
+        "/register: el botón 'Fecha de nacimiento' abre Popover con Calendar; al elegir un día el botón muestra la fecha formateada en español",
+        "Ambas rutas: submit con datos válidos pone botón en 'Procesando…' ~800ms y vuelve"
+      ],
+      "evidence": [
+        "tsc --noEmit en apps/web pasa sin errores tras generar src/routeTree.gen.ts",
+        "biome check de apps/web/src/features, rutas y packages/ui/src/lib/calendar-locales.ts: 0 errores, 0 warnings",
+        "vite dev arrancó sin errores y SSR conectó (log: '[vite] (ssr) connected.')",
+        "Verificado en navegador con chrome-devtools-mcp:",
+        "  - /login renderiza 8 elementos esperados (snapshot a11y completo)",
+        "  - submit vacío en /login: ambos campos quedan invalid=true, alerts 'Correo inválido' y 'Mínimo 8 caracteres', botón disabled",
+        "  - submit válido en /login: errores se limpian, 800ms en estado submitting, sin errores en consola",
+        "  - link 'Regístrate' navega a /register y carga snapshot con 5 campos + date picker",
+        "  - date picker abre Popover (role=dialog) con Calendar en español: meses ene–dic, años 1900–2026, status 'enero 2000', días con etiqueta 'sábado, 15 de enero de 2000'",
+        "  - tras seleccionar 15 ene 2000 y cerrar con Escape, el botón muestra '15 de enero de 2000' (verificado por screenshot)",
+        "  - submit con username 'kg' (2 chars) + passwords distintas: alerts 'Mínimo 3 caracteres' y 'Las contraseñas no coinciden', botón disabled",
+        "  - submit válido completo en /register: sin errores, sin mensajes en consola"
+      ],
+      "notes": "Muy importante usar tanstack form y los componentes de shadcn para esto. Alcance acordado: solo UI visual, sin wiring a Better-Auth (siguiente feature). Login: email + password. Register: username + email + birthdate + password + confirmPassword. Se añadió noValidate al <form> de ambos formularios para que la validación de HTML5 nativa no intercepte el submit antes de Zod (verificado: el popup del navegador 'Incluye un signo @...' ya no aparece y el mensaje 'Correo inválido' de Zod se muestra como FieldError)."
     }
   ]
 }
