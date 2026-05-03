@@ -10,7 +10,10 @@ export const RegisterSchema = z
     birthdate: z
       .string()
       .min(1, "Selecciona una fecha")
-      .refine((value) => !Number.isNaN(Date.parse(value)), "Fecha inválida"),
+      .refine(
+        (value) => value === "" || !Number.isNaN(Date.parse(value)),
+        "Fecha inválida",
+      ),
     password: z.string().min(8, "Mínimo 8 caracteres"),
     confirmPassword: z.string().min(1, "Confirma tu contraseña"),
   })

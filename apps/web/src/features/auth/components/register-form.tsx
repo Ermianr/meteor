@@ -176,6 +176,7 @@ export function RegisterForm() {
                         id={field.name}
                         name={field.name}
                         onBlur={field.handleBlur}
+                        type="button"
                         aria-invalid={isInvalid}
                         className={cn(
                           buttonVariants({ variant: "outline" }),

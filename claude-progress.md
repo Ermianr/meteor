@@ -2,7 +2,7 @@
 
 ## Estado Actual Verificado
 
-- Raíz del repositorio: `C:\Users\Kevin Garcia\Desktop\meteor`
+- Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación: `cd apps/web && bunx tsc --noEmit` y `bunx biome check .` desde root
 - Feature sin terminar de mayor prioridad actual: ninguna; **auth-001** está `passing` tras verificación interactiva completa en navegador
