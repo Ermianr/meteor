@@ -4,8 +4,8 @@
 
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
-- Ruta estándar de verificación: `cd apps/web && bunx tsc --noEmit` y `bunx biome check .` desde root
-- Feature sin terminar de mayor prioridad actual: ninguna; **auth-001** está `passing` tras verificación interactiva completa en navegador
+- Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
+- Feature sin terminar de mayor prioridad actual: **ci-cd-001** (status `in_progress`) — verificación local completa, falta confirmar el primer run verde del workflow en GitHub Actions tras push
 - Bloqueo actual: ninguno
 
 ## Registro de Sesiones
@@ -44,3 +44,38 @@
   - Better-Auth schema actual no tiene `username` ni `birthdate`; cuando se haga el wiring habrá que extender `packages/db/src/schema/auth.ts` o usar `additionalFields`.
   - El campo `birthdate` muestra dos errores cuando está vacío (`Selecciona una fecha` + `Fecha inválida`) porque la `.refine` de Zod corre incluso cuando `.min(1)` falla. Mejorable haciendo que la refine pase cuando el valor es "".
 - Siguiente mejor paso: definir la próxima feature en `feature_list.json` (probablemente el wiring real a Better-Auth, incluyendo extensión del schema de Drizzle para `username` y `birthdate`, y el manejo de respuestas/redirección post-login).
+
+### Sesión 002
+
+- Fecha: 2026-05-03
+- Objetivo: implementar `ci-cd-001` — GitHub Actions (lint + build + type-check en push a main y PRs) y Dependabot (npm + github-actions, semanal con grouping). Verificar que el flujo local que el CI ejecutará pasa verde end-to-end.
+- Completado:
+  - Plan acordado con el usuario (`C:\Users\Kevin Garcia\.claude\plans\aborda-las-tareas-pendientes-recursive-balloon.md`).
+  - Añadido script `check:ci` (`biome check .` sin `--write`) al `package.json` del root, dejando `check` (con `--write`) intacto para uso local.
+  - Añadido script `check-types` (`tsc --noEmit`) a `apps/web/package.json` para que entre en `bun run check-types` (turbo).
+  - Creado `.github/workflows/ci.yml`: dispara en push a `main` y PRs a `main`; pasos = checkout, setup-bun@v2 (bun 1.3.13), install --frozen-lockfile, check:ci, build, check-types; concurrencia con cancel-in-progress y timeout de 15 min.
+  - Creado `.github/dependabot.yml`: ecosistema `npm` (root, weekly lunes 06:00 America/Bogota, grouping minor/patch, prefix `chore(deps)`) y `github-actions` (weekly, grouping all incluido majors, prefix `chore(ci)`).
+  - Saneo de Biome preexistente: `bun run check` (con --write) auto-corrigió 18 archivos (semicolons, trailing commas, organize imports). Quedaron 5 errores no auto-fixeables, todos arreglados con criterio:
+    - `apps/web/src/routes/__root.tsx`: `RouterAppContext = {}` → `Record<string, never>`.
+    - `packages/ui/src/components/field.tsx`: `==` → `===` (FIXABLE-unsafe que se aplicó manualmente).
+    - `packages/ui/src/components/field.tsx`: `key={index}` → `key={error.message}` (los errores ya están deduplicados por message).
+    - `packages/ui/src/components/field.tsx`: `<div role="group">` → `biome-ignore lint/a11y/useSemanticElements` con justificación (Field envuelve un único campo; FieldSet ya cubre la agrupación lógica con `<fieldset>`).
+    - `packages/ui/src/components/label.tsx`: `<label>` sin htmlFor → `biome-ignore lint/a11y/noLabelWithoutControl` con justificación (primitivo shadcn; htmlFor se inyecta en el call site).
+- Ejecución de verificación local:
+  - `bun install --frozen-lockfile` → "no changes" (lockfile sincronizado).
+  - `bun run check:ci` → "Checked 63 files in 49ms. No fixes applied." (0 errores, 0 warnings).
+  - `bun run build` → 2 tasks successful (server build 192ms via tsdown; web build 1.19s client + 616ms ssr via vite) en 3.316s; regenera `apps/web/src/routeTree.gen.ts`.
+  - `bun run check-types` → 3 tasks successful (@meteor/ui, server, web) en 5.88s.
+- Verificación remota pendiente: el `passing` formal requiere abrir PR contra `main` y obtener al menos un run verde del workflow `CI` en GitHub Actions. Mientras eso no ocurra, `ci-cd-001` queda en `in_progress`.
+- Archivos o artefactos actualizados:
+  - Nuevos: `.github/workflows/ci.yml`, `.github/dependabot.yml`.
+  - Editados (script): `package.json` (root), `apps/web/package.json`.
+  - Editados (saneo Biome auto-fix de 18 archivos): `apps/server/src/index.ts`, `apps/web/src/middleware/auth.ts`, `packages/auth/src/index.ts`, `packages/db/src/{index.ts,schema/auth.ts,schema/index.ts}`, `packages/ui/src/components/{button,calendar,card,checkbox,dropdown-menu,input,popover,separator,sonner}.tsx`, `packages/ui/src/lib/utils.ts`, `CLAUDE.md`.
+  - Editados (saneo Biome manual): `apps/web/src/routes/__root.tsx`, `packages/ui/src/components/field.tsx`, `packages/ui/src/components/label.tsx`.
+  - Actualizados: `feature_list.json` (`ci-cd-001` con verification + evidence local), `claude-progress.md` (este archivo), `session-handoff.md`.
+- Riesgo conocido o problema no resuelto:
+  - **Dependabot + bun.lock**: el primer PR de Dependabot puede romper `bun install --frozen-lockfile` si edita `package.json` sin actualizar `bun.lock`. Si pasa, follow-up = añadir un workflow `dependabot-sync-lock.yml` que en branches `dependabot/*` corra `bun install` y commitee el lock de vuelta.
+  - **Branch protection**: hay que activar manualmente en GitHub que la check `CI / verify` sea required para merger en `main`. No se puede hacer desde el repo.
+  - **Sin tests automatizados**: el CI no corre tests porque no existen. Cuando `auth-002` (wiring Better-Auth) añada lógica real, considerar `services: postgres` + `bun test` o vitest.
+  - **Sin cache**: si el job supera ~3 min, añadir `actions/cache` para `~/.bun/install/cache` y `.turbo/`.
+- Siguiente mejor paso: hacer commit de todos los cambios (workflow + dependabot + saneo Biome + scripts + docs), pushear a una rama feature (`feat/ci-cd-001`), abrir PR contra `main`, esperar al run verde, registrar la URL en `evidence` y mover `ci-cd-001` a `passing`.
