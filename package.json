@@ -7,10 +7,10 @@
       "packages/*"
     ],
     "catalog": {
-      "dotenv": "^17.2.2",
-      "zod": "^4.1.13",
-      "typescript": "^6",
-      "@types/bun": "^1.3.4",
+      "dotenv": "^17.4.2",
+      "zod": "^4.4.2",
+      "typescript": "^6.0.3",
+      "@types/bun": "^1.3.13",
       "better-auth": "1.6.9",
       "evlog": "^2.14.1",
       "lucide-react": "^1.14.0",
