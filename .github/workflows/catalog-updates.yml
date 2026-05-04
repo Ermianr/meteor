@@ -46,7 +46,7 @@ jobs:
         run: bun run check-types
 
       - name: Open pull request if there are changes
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: chore/catalog-updates
           delete-branch: true
