@@ -34,7 +34,8 @@
     "db:stop": "turbo -F @meteor/db db:stop",
     "db:down": "turbo -F @meteor/db db:down",
     "check": "biome check --write .",
-    "check:ci": "biome check ."
+    "check:ci": "biome check .",
+    "catalog:update": "bun run scripts/update-catalog.ts"
   },
   "dependencies": {
     "dotenv": "catalog:",
@@ -44,6 +45,8 @@
     "@biomejs/biome": "^2.2.0",
     "@meteor/config": "workspace:*",
     "@types/bun": "catalog:",
+    "@types/semver": "^7.7.1",
+    "semver": "^7.7.3",
     "turbo": "^2.9.8",
     "typescript": "catalog:"
   },

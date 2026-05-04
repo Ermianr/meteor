@@ -133,6 +133,41 @@
         "Baseline 2026-05-03: .\\init.ps1 falla en bun test porque no hay archivos **{.test,.spec,_test_,_spec_}.{js,ts,jsx,tsx}; el paso de install sí pasó."
       ],
       "notes": "Se centralizó lucide-react en el catálogo del workspace para evitar divergencia entre apps/web y packages/ui. Se revisó la propuesta de mover shadcn a devDependencies, pero se descartó porque packages/ui/src/styles/globals.css importa shadcn/tailwind.css y ese CSS es exportado/consumido por apps/web; por eso shadcn permanece en dependencies. La verificación relevante de CI pasó completa; el fallo de .\\init.ps1 es el baseline preexistente de bun test sin archivos de prueba."
+    },
+    {
+      "id": "ci-cd-004",
+      "priority": 1,
+      "area": "Infraestructura",
+      "title": "Configurar un sistema que de igual forma actualice las dependencias dentro de catalogo del workspace (catalog:) y no solo en package.json",
+      "status": "in_progress",
+      "user_visible_behavior": "No visible al usuario final, pero esencial para mantener la coherencia de dependencias y evitar conflictos en el desarrollo.",
+      "verification": [
+        "scripts/update-catalog.ts lee workspaces.catalog, consulta el registry npm y muta workspaces.catalog en sitio (preserva prefijo `^`/`~`, ignora pre-releases, salta pins exactos)",
+        "Política: stay-within-prefix (no major bumps), análoga al grupo `bun-minor-patch` de Dependabot. `bun update` se descartó porque desliteraliza las referencias `catalog:` del root sin tocar workspaces.catalog",
+        "Alias `catalog:update` añadido en root package.json (`bun run scripts/update-catalog.ts`)",
+        "Dependencias añadidas en root devDependencies: `semver` ^7.7.3 y `@types/semver` ^7.7.1 (usados sólo por el script CI)",
+        "Workflow .github/workflows/catalog-updates.yml: schedule lunes 06:00 America/Bogota (cron `0 11 * * 1`) + workflow_dispatch; permissions contents:write, pull-requests:write; concurrency group catalog-updates",
+        "Workflow ejecuta: checkout v6 → setup-bun@v2 (1.3.13) → install --frozen-lockfile → bun run catalog:update → install --frozen-lockfile (sync) → check:ci → build → check-types → peter-evans/create-pull-request@v7 (branch chore/catalog-updates, base main, label dependencies)",
+        "Local: bun run catalog:update muta sólo workspaces.catalog y bun.lock cuando hay bumps disponibles, y termina sin diff cuando no",
+        "Local: bun install --frozen-lockfile pasa después del update",
+        "Local: bun run check:ci pasa con 0 errores y 0 warnings",
+        "Local: bun run build pasa (server + web)",
+        "Local: bun run check-types pasa (@meteor/ui, server, web)",
+        "Remoto: PR de la feature corre verde el workflow CI existente (`Lint, build & typecheck`) — registrar URL del run",
+        "Remoto: tras mergear, gatillar workflow_dispatch sobre catalog-updates.yml para validar end-to-end (job verde y, si hay bumps, PR `chore(deps)(catalog)` abierto; si no, run sale limpio sin PR) — registrar URL del run y, si aplica, URL del PR generado",
+        "Setting requerido (manual en GitHub UI): Settings → Actions → General → Workflow permissions debe permitir 'Allow GitHub Actions to create and approve pull requests' para que peter-evans/create-pull-request@v7 funcione con GITHUB_TOKEN"
+      ],
+      "evidence": [
+        "Local 2026-05-04: scripts/update-catalog.ts inspecciona 9 entradas del catálogo, salta `better-auth` (pin exacto 1.6.9) y detecta 4 bumps minor/patch dentro de prefijo: `dotenv ^17.2.2 → ^17.4.2`, `zod ^4.1.13 → ^4.4.2`, `typescript ^6 → ^6.0.3`, `@types/bun ^1.3.4 → ^1.3.13`. Bun install regenera el lockfile correctamente. Los bumps reales se revierten en este PR para mantenerlo enfocado en el mecanismo; el primer workflow_dispatch tras el merge debe abrir el PR `chore(deps)(catalog)` con esos mismos bumps.",
+        "Local 2026-05-04: `bun update <names>` evaluado y descartado — Bun 1.3.13 desliteraliza las referencias `catalog:` en `dependencies`/`devDependencies` del root y deja `workspaces.catalog` sin actualizar. Por eso el script usa la API del registry + mutación directa del catálogo.",
+        "Local 2026-05-04: bun install --frozen-lockfile → 'Checked 622 installs across 741 packages (no changes) [99.00ms]'.",
+        "Local 2026-05-04: bun run check:ci → 'Checked 64 files in 46ms. No fixes applied.' (incluye scripts/update-catalog.ts ya formateado por Biome).",
+        "Local 2026-05-04: bun run build → 2 tasks successful (server + web client + ssr) en 3.917s.",
+        "Local 2026-05-04: bun run check-types → 3 tasks successful (@meteor/ui, server, web) en 7.68s.",
+        "Pendiente remoto: URL del run del workflow CI sobre el PR de la feature (se registra al abrir).",
+        "Pendiente remoto: URL del workflow_dispatch de catalog-updates.yml + URL del PR generado por la action (se registra tras mergear)."
+      ],
+      "notes": "Dependabot no entiende el campo `workspaces.catalog`, por lo que las 9 deps del catálogo (`dotenv`, `zod`, `typescript`, `@types/bun`, `better-auth`, `evlog`, `lucide-react`, `next-themes`, `@types/react-dom`) jamás recibían PRs automáticos. Se descartó `bun update <names>` porque Bun 1.3.13 reemplaza las referencias `catalog:` por versiones literales en el root sin actualizar `workspaces.catalog` — comportamiento contrario al objetivo de la feature. Solución implementada: workflow programado independiente (`catalog-updates.yml`) que corre lunes 06:00 ABG (mismo cadenza que Dependabot, pero sin solapamiento) y dispara `bun run catalog:update`; el script consulta el registry de npm, calcula el max satisfying con `semver`, muta `workspaces.catalog` directamente y regenera `bun.lock`; si el diff resulta no vacío, `peter-evans/create-pull-request@v7` abre un PR `chore(deps)(catalog): bump catalog dependencies` contra `main`. Major bumps quedan fuera (manuales). Pre-condición operativa: el setting `Allow GitHub Actions to create and approve pull requests` debe estar activo en Settings → Actions → General; si no, fallback a un PAT en `secrets.AUTOMATION_PAT`."
     }
   ]
 }

@@ -1,0 +1,63 @@
+name: Catalog Updates
+
+on:
+  schedule:
+    # Monday 06:00 America/Bogota = 11:00 UTC. Mirrors Dependabot's cadence.
+    - cron: "0 11 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: catalog-updates
+  cancel-in-progress: true
+
+jobs:
+  update-catalog:
+    name: Bump workspace catalog deps
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
+      - name: Install dependencies (frozen baseline)
+        run: bun install --frozen-lockfile
+
+      - name: Bump catalog within semver
+        run: bun run catalog:update
+
+      - name: Verify lockfile is in sync after update
+        run: bun install --frozen-lockfile
+
+      - name: Biome check (lint + format)
+        run: bun run check:ci
+
+      - name: Build (turbo)
+        run: bun run build
+
+      - name: Type check
+        run: bun run check-types
+
+      - name: Open pull request if there are changes
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/catalog-updates
+          delete-branch: true
+          base: main
+          commit-message: "chore(deps)(catalog): bump catalog dependencies"
+          title: "chore(deps)(catalog): bump catalog dependencies"
+          body: |
+            Automated weekly bump of `workspaces.catalog` dependencies within their existing semver ranges.
+
+            - Triggered by `.github/workflows/catalog-updates.yml`.
+            - Runs after Dependabot's window (Monday 06:00 America/Bogota) so both PR streams stay independent.
+            - Major bumps are intentionally **not** included; they remain manual.
+          labels: |
+            dependencies
