@@ -35,7 +35,7 @@
     "db:down": "turbo -F @meteor/db db:down",
     "check": "biome check --write .",
     "check:ci": "biome check .",
-    "catalog:update": "bun run scripts/update-catalog.ts"
+    "deps:update": "bun run scripts/update-deps.ts"
   },
   "dependencies": {
     "dotenv": "catalog:",
