@@ -5,7 +5,7 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature activa: **ci-cd-004** (`in_progress`) — workflow programado para actualizar `workspaces.catalog`. Rama `ci/ci-cd-004-catalog-updates`. **ci-cd-003** ya está en `passing` desde la sesión anterior.
+- Feature activa: ninguna. **ci-cd-004** pasó a `passing` tras evidencia ejecutable end-to-end (run 25301802067 + PR #14 generado por la action). **ci-cd-003** ya estaba en `passing`.
 - Bloqueo actual: ninguno para CI. Baseline conocido: `./init.ps1` ejecuta `bun test` y falla porque aún no existen archivos `*.test`/`*.spec` en el repo.
 
 ## Registro de Sesiones
@@ -191,4 +191,8 @@
   - PR #13 abierto: https://github.com/Ermianr/meteor/pull/13.
   - Job `Lint, build & typecheck` → pass en 23s. Run: https://github.com/Ermianr/meteor/actions/runs/25301580378/job/74169338058.
   - Otros checks remotos: GitGuardian Security Checks pass; CodeQL Analyze pending; CodeRabbit pending — no son parte de la verificación de `ci-cd-004`.
-- Siguiente mejor paso: el usuario revisa/mergea PR #13. Tras el merge, activar (si no está ya) el setting `Allow GitHub Actions to create and approve pull requests` y gatillar `workflow_dispatch` sobre `Catalog Updates`. Registrar URL del run + URL del PR generado (si hubo bumps) en `evidence` y mover `ci-cd-004` a `passing`.
+  - PR #13 mergeado a main (commit `ff22f45`).
+  - El usuario gatilla manualmente `workflow_dispatch` sobre `Catalog Updates` — run 25301802067 pasa en 25s.
+  - La action abrió automáticamente PR #14 (`chore(deps)(catalog): bump catalog dependencies`) con los 4 bumps minor/patch que el script había detectado localmente (`dotenv`, `zod`, `typescript`, `@types/bun`). El mecanismo end-to-end queda demostrado.
+  - `ci-cd-004` movido a `passing`. Evidencia completa registrada.
+- Siguiente mejor paso: el usuario revisa/mergea PR #14 (los bumps reales del catálogo). El próximo lunes el cron del workflow correrá automáticamente; si no hay nuevos bumps disponibles, terminará sin abrir PR. Definir la próxima feature en `feature_list.json` (probablemente el wiring real a Better-Auth, retomando el TODO dejado por `auth-001`).
