@@ -185,4 +185,10 @@
   - **Setting de repo**: para que `peter-evans/create-pull-request@v7` pueda abrir el PR con `GITHUB_TOKEN`, el usuario debe activar manualmente en GitHub UI: Settings → Actions → General → Workflow permissions → "Allow GitHub Actions to create and approve pull requests". Si no se hace, el step falla con 403 y el fallback es usar un PAT en `secrets.AUTOMATION_PAT`.
   - **Cobertura semver**: el script soporta `^x[.y[.z]]`, `~x.y.z` y exact pins. Rangos compuestos (`>=1 <2`, `1.x`) no se han probado en este catálogo; si se introducen, agregar pruebas o ampliar el script.
   - **Sin tests automatizados** sobre el script (consistente con el resto del repo). Una mejora futura sería añadir `bun test` con un mock del registry y aprovechar para arreglar el baseline de `init.ps1`.
-- Siguiente mejor paso: commit + push de la rama `ci/ci-cd-004-catalog-updates`, abrir PR contra `main`, esperar el run verde de `CI / Lint, build & typecheck`, registrar la URL en `evidence`. Tras mergear, gatillar `workflow_dispatch` sobre `catalog-updates.yml`, registrar la URL del run y la URL del PR generado (si hubo bumps) y mover `ci-cd-004` a `passing`.
+- Ejecutado al final de la sesión 005:
+  - Commit `fab281e` ("ci(catalog): add scheduled workflow to bump workspaces.catalog deps") en rama `ci/ci-cd-004-catalog-updates`.
+  - Push a `origin/ci/ci-cd-004-catalog-updates`.
+  - PR #13 abierto: https://github.com/Ermianr/meteor/pull/13.
+  - Job `Lint, build & typecheck` → pass en 23s. Run: https://github.com/Ermianr/meteor/actions/runs/25301580378/job/74169338058.
+  - Otros checks remotos: GitGuardian Security Checks pass; CodeQL Analyze pending; CodeRabbit pending — no son parte de la verificación de `ci-cd-004`.
+- Siguiente mejor paso: el usuario revisa/mergea PR #13. Tras el merge, activar (si no está ya) el setting `Allow GitHub Actions to create and approve pull requests` y gatillar `workflow_dispatch` sobre `Catalog Updates`. Registrar URL del run + URL del PR generado (si hubo bumps) en `evidence` y mover `ci-cd-004` a `passing`.
