@@ -5,7 +5,7 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature activa: ninguna. **ci-cd-003** pasó a `passing` tras evidencia ejecutable local; la rama de trabajo es `ci/ci-cd-003-align-ui-dependencies`.
+- Feature activa: **ci-cd-004** (`in_progress`) — workflow programado para actualizar `workspaces.catalog`. Rama `ci/ci-cd-004-catalog-updates`. **ci-cd-003** ya está en `passing` desde la sesión anterior.
 - Bloqueo actual: ninguno para CI. Baseline conocido: `./init.ps1` ejecuta `bun test` y falla porque aún no existen archivos `*.test`/`*.spec` en el repo.
 
 ## Registro de Sesiones
@@ -152,3 +152,43 @@
   - `./init.ps1` sigue fallando por ausencia de tests. Si se quiere que el baseline smoke sea verde antes de tener tests reales, hay que cambiar ese script a una verificación existente (`bun run check:ci`, por ejemplo) o añadir un test mínimo real.
   - PR #12 abierto y corregido; pendiente revisar checks remotos antes de mergear.
 - Siguiente mejor paso: esperar el CI remoto de PR #12 y mergear si queda verde.
+
+### Sesión 005
+
+- Fecha: 2026-05-04
+- Objetivo: implementar **ci-cd-004** — sistema automático que actualice las entradas de `workspaces.catalog` (que Dependabot ignora) dentro del prefijo semver existente.
+- Plan acordado con el usuario: `C:\Users\Kevin Garcia\.claude\plans\aborda-las-tareas-sin-unified-snowglobe.md`.
+- Diagnóstico clave: `bun update <names>` se evaluó como atajo y se descartó porque Bun 1.3.13 desliteraliza las referencias `catalog:` en el root (las reemplaza por versiones literales) y deja `workspaces.catalog` sin tocar — efecto opuesto al objetivo. Se eligió mutar `workspaces.catalog` directamente desde el registry de npm con `semver.maxSatisfying`.
+- Completado:
+  - Rama existente `ci/ci-cd-004-catalog-updates` (sin commits previos sobre `main`).
+  - `scripts/update-catalog.ts` (nuevo): lee `workspaces.catalog`, fetch a `https://registry.npmjs.org/<name>` por dep, filtra pre-releases, calcula `semver.maxSatisfying(versions, range)`, salta pins exactos (`better-auth: 1.6.9`), preserva el prefijo (`^`/`~`) al escribir, y delega en `bun install` para refrescar el lockfile.
+  - `.github/workflows/catalog-updates.yml` (nuevo): cron `0 11 * * 1` (lunes 06:00 America/Bogota) + `workflow_dispatch`; permissions `contents:write, pull-requests:write`; concurrency group `catalog-updates`; pasos checkout v6 → setup-bun@v2 (1.3.13) → install --frozen-lockfile → catalog:update → install --frozen-lockfile (verifica sync) → check:ci → build → check-types → `peter-evans/create-pull-request@v7` (branch `chore/catalog-updates`, base `main`, label `dependencies`).
+  - `package.json` (root): nuevo script `"catalog:update": "bun run scripts/update-catalog.ts"`; añadidos `semver ^7.7.3` y `@types/semver ^7.7.1` en `devDependencies`.
+  - `bun.lock` regenerado (sólo añade entradas para `semver` y `@types/semver`; `workspaces.catalog` sin tocar en este PR).
+  - Tras una corrida real del script con `bun run catalog:update` (con fines de validación), se revirtieron los bumps reales para mantener el PR de la feature enfocado en el mecanismo. Resultado de esa corrida quedó documentado abajo.
+- Ejecución de verificación:
+  - `bun run catalog:update` (validación pre-revert): inspecciona 9 deps; salta `better-auth` por pin exacto; aplica 4 bumps minor/patch dentro de prefijo:
+    - `dotenv: ^17.2.2 → ^17.4.2`
+    - `zod: ^4.1.13 → ^4.4.2`
+    - `typescript: ^6 → ^6.0.3`
+    - `@types/bun: ^1.3.4 → ^1.3.13`
+    - `bun install` interno regenera lockfile sin errores.
+  - Bumps revertidos manualmente y `bun install` re-ejecutado para sincronizar `bun.lock` al estado HEAD del catálogo.
+  - `bun install --frozen-lockfile` → `Checked 622 installs across 741 packages (no changes) [99.00ms]`.
+  - `bun run check:ci` → `Checked 64 files in 46ms. No fixes applied.` (incluye `scripts/update-catalog.ts` con indentación de 2 espacios tras un `bun run check` auto-fix).
+  - `bun run build` → 2 tasks successful (server + web client + ssr) en `3.917s`.
+  - `bun run check-types` → 3 tasks successful (`@meteor/ui`, `server`, `web`) en `7.68s`.
+- Archivos creados o modificados:
+  - Nuevos: `scripts/update-catalog.ts`, `.github/workflows/catalog-updates.yml`.
+  - Editados: `package.json` (script alias + 2 devDeps), `bun.lock` (semver + @types/semver), `feature_list.json` (`ci-cd-004` en `in_progress` con verification + evidence + notes), `claude-progress.md` (este archivo).
+- Riesgo conocido o problema no resuelto:
+  - **Setting de repo**: para que `peter-evans/create-pull-request@v7` pueda abrir el PR con `GITHUB_TOKEN`, el usuario debe activar manualmente en GitHub UI: Settings → Actions → General → Workflow permissions → "Allow GitHub Actions to create and approve pull requests". Si no se hace, el step falla con 403 y el fallback es usar un PAT en `secrets.AUTOMATION_PAT`.
+  - **Cobertura semver**: el script soporta `^x[.y[.z]]`, `~x.y.z` y exact pins. Rangos compuestos (`>=1 <2`, `1.x`) no se han probado en este catálogo; si se introducen, agregar pruebas o ampliar el script.
+  - **Sin tests automatizados** sobre el script (consistente con el resto del repo). Una mejora futura sería añadir `bun test` con un mock del registry y aprovechar para arreglar el baseline de `init.ps1`.
+- Ejecutado al final de la sesión 005:
+  - Commit `fab281e` ("ci(catalog): add scheduled workflow to bump workspaces.catalog deps") en rama `ci/ci-cd-004-catalog-updates`.
+  - Push a `origin/ci/ci-cd-004-catalog-updates`.
+  - PR #13 abierto: https://github.com/Ermianr/meteor/pull/13.
+  - Job `Lint, build & typecheck` → pass en 23s. Run: https://github.com/Ermianr/meteor/actions/runs/25301580378/job/74169338058.
+  - Otros checks remotos: GitGuardian Security Checks pass; CodeQL Analyze pending; CodeRabbit pending — no son parte de la verificación de `ci-cd-004`.
+- Siguiente mejor paso: el usuario revisa/mergea PR #13. Tras el merge, activar (si no está ya) el setting `Allow GitHub Actions to create and approve pull requests` y gatillar `workflow_dispatch` sobre `Catalog Updates`. Registrar URL del run + URL del PR generado (si hubo bumps) en `evidence` y mover `ci-cd-004` a `passing`.
