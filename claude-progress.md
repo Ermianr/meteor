@@ -5,7 +5,7 @@
 - Raíz del repositorio: `<project-root>\meteor`
 - Ruta estándar de inicio: `bun install` (en root) y `bun run dev:web` (puerto 3001)
 - Ruta estándar de verificación local (alineada con CI): `bun run check:ci`, `bun run build`, `bun run check-types` desde el root
-- Feature activa: ninguna. **ci-cd-004** pasó a `passing` tras evidencia ejecutable end-to-end (run 25301802067 + PR #14 generado por la action). **ci-cd-003** ya estaba en `passing`.
+- Feature activa: **ci-cd-005** — script propio unificado que reemplaza a Dependabot para actualizar dependencias del monorepo completo, con PRs separados por área.
 - Bloqueo actual: ninguno para CI. Baseline conocido: `./init.ps1` ejecuta `bun test` y falla porque aún no existen archivos `*.test`/`*.spec` en el repo.
 
 ## Registro de Sesiones
@@ -162,7 +162,7 @@
 - Completado:
   - Rama existente `ci/ci-cd-004-catalog-updates` (sin commits previos sobre `main`).
   - `scripts/update-catalog.ts` (nuevo): lee `workspaces.catalog`, fetch a `https://registry.npmjs.org/<name>` por dep, filtra pre-releases, calcula `semver.maxSatisfying(versions, range)`, salta pins exactos (`better-auth: 1.6.9`), preserva el prefijo (`^`/`~`) al escribir, y delega en `bun install` para refrescar el lockfile.
-  - `.github/workflows/catalog-updates.yml` (nuevo): cron `0 11 * * 1` (lunes 06:00 America/Bogota) + `workflow_dispatch`; permissions `contents:write, pull-requests:write`; concurrency group `catalog-updates`; pasos checkout v6 → setup-bun@v2 (1.3.13) → install --frozen-lockfile → catalog:update → install --frozen-lockfile (verifica sync) → check:ci → build → check-types → `peter-evans/create-pull-request@v7` (branch `chore/catalog-updates`, base `main`, label `dependencies`).
+  - `.github/workflows/catalog-updates.yml` (nuevo): cron `0 11 * * 1` (lunes 06:00 America/Bogota) + `workflow_dispatch`; permissions `contents:write, pull-requests:write`; concurrency group `catalog-updates`; pasos checkout v6 → setup-bun@v2 (1.3.13) → install --frozen-lockfile → catalog:update → install --frozen-lockfile (sync) → check:ci → build → check-types → `peter-evans/create-pull-request@v7` (branch `chore/catalog-updates`, base `main`, label `dependencies`).
   - `package.json` (root): nuevo script `"catalog:update": "bun run scripts/update-catalog.ts"`; añadidos `semver ^7.7.3` y `@types/semver ^7.7.1` en `devDependencies`.
   - `bun.lock` regenerado (sólo añade entradas para `semver` y `@types/semver`; `workspaces.catalog` sin tocar en este PR).
   - Tras una corrida real del script con `bun run catalog:update` (con fines de validación), se revirtieron los bumps reales para mantener el PR de la feature enfocado en el mecanismo. Resultado de esa corrida quedó documentado abajo.
@@ -190,9 +190,37 @@
   - Push a `origin/ci/ci-cd-004-catalog-updates`.
   - PR #13 abierto: https://github.com/Ermianr/meteor/pull/13.
   - Job `Lint, build & typecheck` → pass en 23s. Run: https://github.com/Ermianr/meteor/actions/runs/25301580378/job/74169338058.
-  - Otros checks remotos: GitGuardian Security Checks pass; CodeQL Analyze pending; CodeRabbit pending — no son parte de la verificación de `ci-cd-004`.
+  - Otros checks remotos: GitGuardian Security Checks pass; CodeQL Analyze pending, CodeRabbit pending — no son parte de la verificación de `ci-cd-004`.
   - PR #13 mergeado a main (commit `ff22f45`).
   - El usuario gatilla manualmente `workflow_dispatch` sobre `Catalog Updates` — run 25301802067 pasa en 25s.
   - La action abrió automáticamente PR #14 (`chore(deps)(catalog): bump catalog dependencies`) con los 4 bumps minor/patch que el script había detectado localmente (`dotenv`, `zod`, `typescript`, `@types/bun`). El mecanismo end-to-end queda demostrado.
   - `ci-cd-004` movido a `passing`. Evidencia completa registrada.
 - Siguiente mejor paso: el usuario revisa/mergea PR #14 (los bumps reales del catálogo). El próximo lunes el cron del workflow correrá automáticamente; si no hay nuevos bumps disponibles, terminará sin abrir PR. Definir la próxima feature en `feature_list.json` (probablemente el wiring real a Better-Auth, retomando el TODO dejado por `auth-001`).
+
+### Sesión 006
+
+- Fecha: 2026-05-04
+- Objetivo: implementar **ci-cd-005** — reemplazar Dependabot por un script propio que actualice TODAS las dependencias del monorepo, agrupadas por área de negocio, con un PR separado por área.
+- Decisión del usuario: Opción A (script propio funcional, sin herramientas de terceros como Renovate). Un solo script unificado que absorbe la funcionalidad del antiguo `update-catalog.ts`.
+- Completado:
+  - Eliminados archivos obsoletos: `scripts/update-catalog.ts`, `.github/workflows/catalog-updates.yml`, `.github/dependabot.yml`.
+  - Creado `scripts/update-deps.ts`: descubre todos los `package.json` del monorepo, consulta el registry npm, calcula bumps stay-within-prefix con `semver.maxSatisfying`, asigna cada dep al área de mayor prioridad (`catalog > root > backend > frontend`), y aplica los cambios. Soporta `--area` y `--dry-run`.
+  - Creado `.github/workflows/dependency-updates.yml`: matrix job con 4 áreas (`root`, `backend`, `frontend`, `catalog`), cron lunes 06:00 ABG + `workflow_dispatch`, cada job corre desde `main` limpio, ejecuta `bun run scripts/update-deps.ts --area <area>`, verifica `--frozen-lockfile`, corre `check:ci` + `build` + `check-types`, y abre PR con `peter-evans/create-pull-request@v7` si hay cambios (branch `chore/deps-<area>`, labels `<area>-deps` + `dependencies`).
+  - Actualizado `package.json` (root): script `catalog:update` renombrado a `deps:update` apuntando a `scripts/update-deps.ts`.
+  - `bun run check:ci` pasó tras correcciones manuales de Biome (non-null assertions, template literals, unused variables, format).
+- Ejecución de verificación:
+  - `bun install --frozen-lockfile` → `Checked 622 installs across 741 packages (no changes) [109.00ms]`.
+  - `bun run check:ci` → `Checked 64 files in 60ms. No fixes applied.` (0 errores, 0 warnings).
+  - `bun run build` → 2 tasks successful (server + web) en 62ms, FULL TURBO.
+  - `bun run check-types` → 3 tasks successful (@meteor/ui, server, web) en 53ms, FULL TURBO.
+  - `bun run scripts/update-deps.ts --dry-run` → detecta 17 bumps en 3 áreas: root (2: `@biomejs/biome`, `semver`), backend (6: `hono`, `tsdown`, `drizzle-orm`, `pg`, `@types/pg`, `drizzle-kit`), frontend (9: `@tailwindcss/vite`, `@tanstack/react-form`, `@tanstack/react-router`, `tailwindcss`, `jsdom`, `vite`, `@base-ui/react`, `tailwind-merge`, `tw-animate-css`). Skipped: `better-auth` (pinned), `nitro` (prerelease range).
+- Archivos creados o modificados:
+  - Nuevos: `scripts/update-deps.ts`, `.github/workflows/dependency-updates.yml`.
+  - Eliminados: `scripts/update-catalog.ts`, `.github/workflows/catalog-updates.yml`, `.github/dependabot.yml`.
+  - Editados: `package.json` (root, script rename), `feature_list.json` (ci-cd-005 verification + evidence), `claude-progress.md` (este archivo).
+- Riesgo conocido o problema no resuelto:
+  - **Setting de repo**: el setting `Allow GitHub Actions to create and approve pull requests` debe estar activo para que `peter-evans/create-pull-request@v7` funcione con `GITHUB_TOKEN`.
+  - **Orden de merge**: si múltiples PRs de área se abren simultáneamente, el primero en mergearse puede generar conflictos en `bun.lock` para los demás. Recomendación: mergear `catalog` primero, luego `root`, luego `backend`/`frontend`.
+  - **Sin tests automatizados**: el script no tiene tests unitarios. Una mejora futura sería añadir `bun test` con mocks del registry.
+  - **Baseline init.ps1**: sigue fallando por ausencia de archivos de test.
+- Siguiente mejor paso: commit, push a rama `ci/ci-cd-005-unified-deps`, abrir PR contra `main`, esperar CI verde, y tras merge gatillar `workflow_dispatch` para validar end-to-end.
