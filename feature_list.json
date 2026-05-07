@@ -1,0 +1,293 @@
+{
+  "$schema": "./docs/schema/feature-list.schema.json",
+  "project": "Meteor",
+  "last_updated": "2026-05-06",
+  "rules": {
+    "single_active_feature": true,
+    "passing_requires_evidence": true,
+    "do_not_skip_verification": true
+  },
+  "status_legend": {
+    "not_started": "Feature identificada pero sin trabajo iniciado.",
+    "in_progress": "Feature activa: hay trabajo en curso. Solo una feature puede estar en este estado a la vez.",
+    "blocked": "Trabajo detenido por una dependencia o decisión externa. El campo 'notes' debe explicar el blocker.",
+    "passing": "Feature verificada: la 'verification' se ejecutó exitosamente y 'evidence' contiene al menos una referencia al resultado."
+  },
+  "features": [
+    {
+      "id": "auth-email-password",
+      "priority": 1,
+      "area": "auth",
+      "title": "Signup y login con email+password",
+      "user_visible_behavior": "Un visitante puede crear cuenta con email+password y, en una visita posterior, iniciar sesión con esas credenciales.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "auth-oauth-google",
+      "priority": 2,
+      "area": "auth",
+      "title": "Login con OAuth Google",
+      "user_visible_behavior": "Un visitante puede iniciar sesión usando su cuenta de Google y queda autenticado en Meteor.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "auth-oauth-github",
+      "priority": 3,
+      "area": "auth",
+      "title": "Login con OAuth GitHub",
+      "user_visible_behavior": "Un visitante puede iniciar sesión usando su cuenta de GitHub y queda autenticado en Meteor.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "auth-session-logout",
+      "priority": 4,
+      "area": "auth",
+      "title": "Sesión persistente y logout",
+      "user_visible_behavior": "La sesión del usuario se mantiene entre visitas y el usuario puede cerrarla explícitamente; tras cerrar sesión las rutas autenticadas vuelven a requerir login.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "onboarding-username",
+      "priority": 5,
+      "area": "onboarding",
+      "title": "Configuración de username y display name post-signup",
+      "user_visible_behavior": "Tras el primer signup, el usuario es redirigido a /welcome para elegir un username único y un display name antes de acceder al resto de la app.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": "Ver ADR-0001 y ADR-0007."
+    },
+    {
+      "id": "servers-create",
+      "priority": 6,
+      "area": "servers",
+      "title": "Crear server",
+      "user_visible_behavior": "El usuario puede crear un nuevo server desde la UI; el server queda con un rol @everyone, el creador como owner y un canal de texto #general listos para usar.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": "Ver ADR-0006."
+    },
+    {
+      "id": "servers-invites",
+      "priority": 7,
+      "area": "servers",
+      "title": "Invitaciones por link y unirse a server",
+      "user_visible_behavior": "Un miembro autorizado puede generar un link de invitación para su server; cualquier usuario con ese link puede aceptar y convertirse en miembro.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "channels-text",
+      "priority": 8,
+      "area": "channels",
+      "title": "Canales de texto en servers",
+      "user_visible_behavior": "Dentro de un server, los miembros con permisos pueden crear, listar y navegar canales de texto.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "channels-dm",
+      "priority": 9,
+      "area": "channels",
+      "title": "DMs 1-a-1 entre usuarios",
+      "user_visible_behavior": "Un usuario puede abrir una conversación 1-a-1 con otro usuario; el DM se lista en su sidebar y persiste entre sesiones.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "messages-send-realtime",
+      "priority": 10,
+      "area": "messages",
+      "title": "Envío de mensajes en tiempo real con optimistic UI",
+      "user_visible_behavior": "Al enviar un mensaje en un canal, el autor lo ve confirmado de inmediato (optimistic UI) y el resto de participantes lo recibe en tiempo real.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": "Ver ADR-0002."
+    },
+    {
+      "id": "messages-edit",
+      "priority": 11,
+      "area": "messages",
+      "title": "Editar mensaje propio",
+      "user_visible_behavior": "El autor de un mensaje puede editarlo; todos los participantes del canal ven el contenido actualizado y una marca de editado.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": "Ver ADR-0004."
+    },
+    {
+      "id": "messages-delete",
+      "priority": 12,
+      "area": "messages",
+      "title": "Borrar mensaje (soft delete)",
+      "user_visible_behavior": "El autor (o un moderador autorizado) puede borrar un mensaje; el mensaje deja de mostrarse a los participantes.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": "Ver ADR-0004 y ADR-0005."
+    },
+    {
+      "id": "messages-reply",
+      "priority": 13,
+      "area": "messages",
+      "title": "Responder a un mensaje",
+      "user_visible_behavior": "El usuario puede responder a un mensaje específico; la respuesta queda visualmente vinculada al mensaje original.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "messages-reactions",
+      "priority": 14,
+      "area": "messages",
+      "title": "Reacciones emoji a mensajes",
+      "user_visible_behavior": "El usuario puede agregar y quitar reacciones emoji a un mensaje; el conteo de reacciones se actualiza para todos los participantes en tiempo real.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "messages-markdown",
+      "priority": 15,
+      "area": "messages",
+      "title": "Markdown básico, code blocks y link previews",
+      "user_visible_behavior": "Los mensajes renderizan markdown básico (negritas, itálicas, links), bloques de código con highlight y previews de los enlaces compartidos.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "uploads-files",
+      "priority": 16,
+      "area": "uploads",
+      "title": "Subida de imágenes y archivos",
+      "user_visible_behavior": "El usuario puede adjuntar imágenes y archivos a un mensaje; los archivos se almacenan en R2 (prod) o MinIO (dev) y se muestran inline o como descarga.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "mentions",
+      "priority": 17,
+      "area": "mentions",
+      "title": "Mentions @user y @everyone",
+      "user_visible_behavior": "El usuario puede mencionar a otro miembro con @username o a todos con @everyone; los mencionados ven la mención resaltada y reciben el badge de unread correspondiente.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "presence",
+      "priority": 18,
+      "area": "presence",
+      "title": "Presencia online/idle/dnd/offline",
+      "user_visible_behavior": "Cada usuario tiene un estado de presencia (online/idle/dnd/offline) que el resto de miembros ve actualizado automáticamente.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "typing-indicators",
+      "priority": 19,
+      "area": "presence",
+      "title": "Typing indicators por canal",
+      "user_visible_behavior": "Mientras un usuario escribe en un canal, los demás participantes ven un indicador de typing efímero junto a su nombre.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "unread-tracking",
+      "priority": 20,
+      "area": "notifications",
+      "title": "Tracking de unreads por canal",
+      "user_visible_behavior": "Cada canal con mensajes nuevos para el usuario se muestra como no leído; al abrirlo, los mensajes vistos se marcan como leídos automáticamente.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "in-app-notifications",
+      "priority": 21,
+      "area": "notifications",
+      "title": "Notificaciones in-app (sonido, tab title, favicon dot)",
+      "user_visible_behavior": "Cuando llega un mensaje relevante con la app abierta, el usuario percibe sonido, badge en el favicon y actualización del title de la pestaña.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "channel-mute",
+      "priority": 22,
+      "area": "notifications",
+      "title": "Mute por canal",
+      "user_visible_behavior": "El usuario puede silenciar un canal; los nuevos mensajes ya no generan notificaciones in-app, pero el unread sigue siendo visible.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "search-messages",
+      "priority": 23,
+      "area": "search",
+      "title": "Búsqueda de mensajes (canal y server-wide)",
+      "user_visible_behavior": "El usuario puede buscar mensajes por keyword dentro de un canal o de todo el server al que pertenece.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "roles-permissions",
+      "priority": 24,
+      "area": "permissions",
+      "title": "Roles básicos con permisos server-wide",
+      "user_visible_behavior": "El owner y los roles autorizados pueden definir roles con permisos a nivel server (ver canales, enviar mensajes, gestionar mensajes, etc.); las acciones de los miembros respetan esos permisos.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    },
+    {
+      "id": "user-settings",
+      "priority": 25,
+      "area": "settings",
+      "title": "Settings de usuario",
+      "user_visible_behavior": "El usuario puede acceder a una pantalla de settings y editar su display name, avatar y preferencias básicas de cuenta.",
+      "status": "not_started",
+      "verification": [],
+      "evidence": [],
+      "notes": ""
+    }
+  ]
+}

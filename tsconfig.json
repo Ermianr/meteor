@@ -1,0 +1,3 @@
+{
+  "extends": "@meteor/config/tsconfig.base.json"
+}

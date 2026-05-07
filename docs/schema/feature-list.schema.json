@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/meteor/docs/schema/feature-list.schema.json",
+  "title": "Meteor Feature List",
+  "description": "Esquema para feature_list.json: registro autoritativo de features del proyecto Meteor, su estado y la evidencia de verificación asociada.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "last_updated",
+    "rules",
+    "status_legend",
+    "features"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Referencia opcional al schema JSON contra el que validar este documento. La usan editores como VS Code para autocompletar y resaltar errores.",
+      "format": "uri-reference"
+    },
+    "project": {
+      "type": "string",
+      "description": "Nombre del proyecto al que pertenece esta lista de features.",
+      "minLength": 1
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "Fecha de la última actualización en formato ISO 8601 (YYYY-MM-DD). Se permite el placeholder 'YYYY-MM-DD' antes de la primera actualización.",
+      "pattern": "^(YYYY-MM-DD|\\d{4}-\\d{2}-\\d{2})$"
+    },
+    "rules": {
+      "type": "object",
+      "description": "Reglas operativas que rigen cómo se trabajan y verifican las features.",
+      "additionalProperties": false,
+      "required": [
+        "single_active_feature",
+        "passing_requires_evidence",
+        "do_not_skip_verification"
+      ],
+      "properties": {
+        "single_active_feature": {
+          "type": "boolean",
+          "description": "Si es true, solo una feature puede estar 'in_progress' a la vez."
+        },
+        "passing_requires_evidence": {
+          "type": "boolean",
+          "description": "Si es true, marcar una feature como 'passing' exige al menos una entrada en 'evidence'."
+        },
+        "do_not_skip_verification": {
+          "type": "boolean",
+          "description": "Si es true, no se puede declarar 'passing' sin ejecutar la 'verification' asociada."
+        }
+      }
+    },
+    "status_legend": {
+      "type": "object",
+      "description": "Diccionario que documenta el significado de cada valor permitido de 'status'.",
+      "additionalProperties": false,
+      "required": [
+        "not_started",
+        "in_progress",
+        "blocked",
+        "passing"
+      ],
+      "properties": {
+        "not_started": { "type": "string", "minLength": 1 },
+        "in_progress": { "type": "string", "minLength": 1 },
+        "blocked": { "type": "string", "minLength": 1 },
+        "passing": { "type": "string", "minLength": 1 }
+      }
+    },
+    "features": {
+      "type": "array",
+      "description": "Lista de features del proyecto. El orden no es significativo; usa 'priority' para ordenar.",
+      "items": { "$ref": "#/$defs/feature" }
+    }
+  },
+  "$defs": {
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "priority",
+        "area",
+        "title",
+        "user_visible_behavior",
+        "status",
+        "verification",
+        "evidence",
+        "notes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador estable y único de la feature. Puede estar vacío únicamente para la plantilla inicial."
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Prioridad relativa; valores menores indican mayor prioridad.",
+          "minimum": 1
+        },
+        "area": {
+          "type": "string",
+          "description": "Área funcional o módulo del producto al que pertenece la feature (ej. 'auth', 'chat', 'realtime')."
+        },
+        "title": {
+          "type": "string",
+          "description": "Título humano corto de la feature."
+        },
+        "user_visible_behavior": {
+          "type": "string",
+          "description": "Comportamiento observable por el usuario final cuando la feature está completa."
+        },
+        "status": {
+          "type": "string",
+          "description": "Estado actual de la feature. Debe ser uno de los valores documentados en 'status_legend'.",
+          "enum": ["not_started", "in_progress", "blocked", "passing"]
+        },
+        "verification": {
+          "type": "array",
+          "description": "Pasos o comandos ejecutables que demuestran que la feature funciona (ej. comandos de test, scripts de smoke).",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "description": "Referencias concretas al resultado de ejecutar 'verification' (ej. SHA de commit, ruta a un log, URL de un run de CI).",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Notas libres: blockers documentados, decisiones, enlaces a issues o ADRs."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "passing" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "blocked" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "notes": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
