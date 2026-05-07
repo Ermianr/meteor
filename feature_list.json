@@ -30,6 +30,8 @@
       ],
       "evidence": [
         "commit f214ce5 (feat(auth): wire email and password signup and login)",
+        "https://github.com/Ermianr/meteor/issues/1",
+        "https://github.com/Ermianr/meteor/pull/2",
         "DB tras flujo: tablas user/account/session con filas; account.password con hash de 161 chars; sessions con expiresAt sliding 7d.",
         "API verificada: POST /api/auth/sign-up/email → 200 + Set-Cookie better-auth.session_token (SameSite=Lax HttpOnly). GET /api/auth/get-session con esa cookie → user. POST /api/auth/sign-in/email con bad creds → 401 'Invalid email or password'."
       ],
