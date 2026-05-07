@@ -2,7 +2,7 @@ name: meteor
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:18
     container_name: meteor-postgres
     environment:
       POSTGRES_DB: meteor
