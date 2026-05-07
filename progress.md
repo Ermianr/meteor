@@ -2,7 +2,7 @@
 
 ## Estado actual verificado
 
-- Root del repo: `C:\Users\Kevin Garcia\Desktop\meteor`
+- Root del repo: `<repo-root>/meteor`
 - Path estándar de startup: `bun db:start && bun db:push && bun dev` (web :3001, server :3000, Postgres :5432 vía Docker).
 - Path estándar de verificación: `bun check-types` + flujo manual signup/login en navegador (ver Session 001).
 - Feature sin terminar de mayor prioridad actualmente: `auth-oauth-google` (priority 2).
