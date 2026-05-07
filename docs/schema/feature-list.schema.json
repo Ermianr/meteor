@@ -5,13 +5,7 @@
   "description": "Esquema para feature_list.json: registro autoritativo de features del proyecto Meteor, su estado y la evidencia de verificación asociada.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "project",
-    "last_updated",
-    "rules",
-    "status_legend",
-    "features"
-  ],
+  "required": ["project", "last_updated", "rules", "status_legend", "features"],
   "properties": {
     "$schema": {
       "type": "string",
@@ -56,12 +50,7 @@
       "type": "object",
       "description": "Diccionario que documenta el significado de cada valor permitido de 'status'.",
       "additionalProperties": false,
-      "required": [
-        "not_started",
-        "in_progress",
-        "blocked",
-        "passing"
-      ],
+      "required": ["not_started", "in_progress", "blocked", "passing"],
       "properties": {
         "not_started": { "type": "string", "minLength": 1 },
         "in_progress": { "type": "string", "minLength": 1 },
