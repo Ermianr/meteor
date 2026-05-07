@@ -16,15 +16,15 @@ Luego selecciona exactamente una feature sin terminar y trabaja únicamente en e
 
 ## Reglas
 
+- Antes de cualquier código, abre o reusa un issue para la feature; espera confirmación si no existe. Detalles en [./docs/agents/issue-tracker.md](./docs/agents/issue-tracker.md).
 - Solo una feature activa a la vez.
 - No declares algo como completado sin evidencia ejecutable.
 - No reescribas la lista de features para ocultar trabajo pendiente.
 - No elimines ni debilites tests solo para hacer que la tarea parezca terminada.
 - Usa los artefactos del repositorio como fuente oficial de verdad.
 - Cuando modifiques comportamientos visibles al usuario, revisa `README.md` para verificar si la documentación necesita actualizarse.
-- Antes de crear una PR nueva, asegúrate de crear una issue para la feature que vas a trabajar, si es que no existe ya.
-- **Nombramiento de PRs (obligatorio):** seguir [Conventional Commits](https://www.conventionalcommits.org/). Formato: `<tipo>(<scope opcional>): <descripción imperativa, en inglés, en minúsculas, sin punto final>`. Tipos permitidos: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `build`, `ci`, `perf`, `revert`, `style`. Ejemplos válidos: `feat(auth): add github oauth provider`, `fix(db): prevent duplicate dm channels`, `chore(deps): bump drizzle-orm to 0.44`. Un PR cuyo título no cumpla este formato debe ser renombrado antes de merge — sin excepciones.
-- **Nombramiento de branches (obligatorio):** usar exclusivamente `feature/<nombre-corto-descriptivo>` para trabajo nuevo o `fix/<nombre-corto-descriptivo>` para correcciones. El sufijo debe ser kebab-case (lowercase, palabras separadas por guiones), 2-5 palabras, en inglés, sin espacios ni guiones bajos ni mayúsculas. Ejemplos válidos: `feature/github-oauth`, `feature/dm-typing-indicator`, `fix/duplicate-dm-channels`. No se permite trabajar sobre `main` directamente, ni branches sin prefijo, ni nombres en español, ni `snake_case`, ni `camelCase`.
+- **Nombramiento de PRs:** [Conventional Commits](https://www.conventionalcommits.org/), descripción imperativa en inglés y minúsculas. Ejemplo: `feat(auth): add github oauth provider`. Renombrar antes de merge si no cumple.
+- **Nombramiento de branches:** `feature/<kebab-case>` o `fix/<kebab-case>` (2-5 palabras, inglés). Ejemplos: `feature/github-oauth`, `fix/duplicate-dm-channels`. Nunca trabajar sobre `main`.
 
 ## Archivos Requeridos
 
@@ -43,8 +43,9 @@ Una feature solo puede pasar a estado `passing` después de que la verificación
 3. Registra qué sigue roto o sin verificar.
 4. Haz commit una vez que el repositorio sea seguro para reanudar.
 5. Deja un camino limpio de reinicio para la siguiente sesión.
+6. Elimina branches ya mergeadas y haz un prune de branches obsoletas.
 
-# A tener en cuenta
+## A tener en cuenta
 
 - El directorio `docs/` y los archivos `CONTEXT.md`, `CLAUDE.md`, `feature_list.json`, `progress.md` y `session-handoff.md` de la raíz son artefactos internos de la IA y **no deben documentarse en `README.md`**.
 
