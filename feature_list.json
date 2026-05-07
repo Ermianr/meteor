@@ -1,7 +1,7 @@
 {
   "$schema": "./docs/schema/feature-list.schema.json",
   "project": "Meteor",
-  "last_updated": "2026-05-06",
+  "last_updated": "2026-05-07",
   "rules": {
     "single_active_feature": true,
     "passing_requires_evidence": true,
@@ -20,10 +20,22 @@
       "area": "auth",
       "title": "Signup y login con email+password",
       "user_visible_behavior": "Un visitante puede crear cuenta con email+password y, en una visita posterior, iniciar sesión con esas credenciales.",
-      "status": "not_started",
-      "verification": [],
-      "evidence": [],
-      "notes": ""
+      "status": "passing",
+      "verification": [
+        "bun db:start && bun db:push",
+        "bun dev",
+        "Browser /register: enviar email+password+confirmPassword → redirige a / con 'Sesión activa: <email>'.",
+        "Browser reload en /: la sesión persiste.",
+        "Browser en pestaña aislada (cookie jar limpio): / muestra 'No has iniciado sesión'; /login con bad creds → toast 'Credenciales inválidas'; /login con creds correctas → redirige a / con sesión."
+      ],
+      "evidence": [
+        "commit f214ce5 (feat(auth): wire email and password signup and login)",
+        "https://github.com/Ermianr/meteor/issues/1",
+        "https://github.com/Ermianr/meteor/pull/2",
+        "DB tras flujo: tablas user/account/session con filas; account.password con hash de 161 chars; sessions con expiresAt sliding 7d.",
+        "API verificada: POST /api/auth/sign-up/email → 200 + Set-Cookie better-auth.session_token (SameSite=Lax HttpOnly). GET /api/auth/get-session con esa cookie → user. POST /api/auth/sign-in/email con bad creds → 401 'Invalid email or password'."
+      ],
+      "notes": "Form alineado con ADR-0007: solo email + password (confirmPassword UX-only). El campo 'name' de Better-Auth recibe el email como placeholder write-only. Sin verificación de email (AUTH.md la exige antes de crear/joinear servers, no para login). Sin rate limiting ni Turnstile (deuda; SECURITY.md). Cookie attrs condicionados por NODE_ENV: dev usa SameSite=Lax + Secure=false; prod usa SameSite=None + Secure=true."
     },
     {
       "id": "auth-oauth-google",

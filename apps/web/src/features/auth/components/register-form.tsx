@@ -1,5 +1,4 @@
-import { Button, buttonVariants } from "@meteor/ui/components/button";
-import { Calendar } from "@meteor/ui/components/calendar";
+import { Button } from "@meteor/ui/components/button";
 import {
   Card,
   CardContent,
@@ -15,56 +14,38 @@ import {
   FieldLabel,
 } from "@meteor/ui/components/field";
 import { Input } from "@meteor/ui/components/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@meteor/ui/components/popover";
-import { es } from "@meteor/ui/lib/calendar-locales";
-import { cn } from "@meteor/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
-import { Link } from "@tanstack/react-router";
-import { CalendarIcon } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
+import { authClient } from "@/lib/auth-client";
 import { type RegisterInput, RegisterSchema } from "../schemas/register";
 
-const displayDateFormatter = new Intl.DateTimeFormat("es", {
-  day: "2-digit",
-  month: "long",
-  year: "numeric",
-});
-
-function parseLocalDate(value: string): Date | undefined {
-  const parts = value.split("-").map(Number);
-  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) {
-    return undefined;
-  }
-  const [year, month, day] = parts;
-  return new Date(year, month - 1, day);
-}
-
-function toLocalDateString(value: Date): string {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 const DEFAULT_VALUES: RegisterInput = {
-  username: "",
   email: "",
-  birthdate: "",
   password: "",
   confirmPassword: "",
 };
 
 export function RegisterForm() {
+  const navigate = useNavigate();
+
   const form = useForm({
     defaultValues: DEFAULT_VALUES,
     validators: { onSubmit: RegisterSchema },
-    onSubmit: async () => {
-      // TODO(auth wiring): reemplazar por authClient.signUp.email
-      await new Promise((resolve) => setTimeout(resolve, 800));
+    onSubmit: async ({ value }) => {
+      const { error } = await authClient.signUp.email({
+        email: value.email,
+        password: value.password,
+        // ADR-0007: el form no pide "name"; se pasa el email como placeholder
+        // write-only para satisfacer el requirement de Better-Auth.
+        name: value.email,
+      });
+      if (error) {
+        toast.error("No se pudo crear la cuenta");
+        return;
+      }
+      navigate({ to: "/" });
     },
   });
 
@@ -81,46 +62,12 @@ export function RegisterForm() {
         <CardHeader>
           <CardTitle>Crear cuenta</CardTitle>
           <CardDescription>
-            Completa tus datos para registrarte en Meteor.
+            Ingresa tu correo y contraseña para registrarte en Meteor.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="flex flex-col gap-3">
           <FieldGroup>
-            <form.Field name="username">
-              {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-
-                return (
-                  <Field
-                    className="flex flex-col gap-1.5"
-                    data-invalid={isInvalid}
-                  >
-                    <FieldLabel htmlFor={field.name}>
-                      Nombre de usuario
-                    </FieldLabel>
-                    <Input
-                      type="text"
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
-                      aria-invalid={isInvalid}
-                      autoComplete="username"
-                      placeholder="Nombre de usuario"
-                    />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            </form.Field>
-
             <form.Field name="email">
               {(field) => {
                 const isInvalid =
@@ -147,68 +94,6 @@ export function RegisterForm() {
                       autoComplete="email"
                       placeholder="Correo electrónico"
                     />
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </Field>
-                );
-              }}
-            </form.Field>
-
-            <form.Field name="birthdate">
-              {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                const selectedDate = field.state.value
-                  ? parseLocalDate(field.state.value)
-                  : undefined;
-
-                return (
-                  <Field
-                    className="flex flex-col gap-1.5"
-                    data-invalid={isInvalid}
-                  >
-                    <FieldLabel htmlFor={field.name}>
-                      Fecha de nacimiento
-                    </FieldLabel>
-                    <Popover>
-                      <PopoverTrigger
-                        id={field.name}
-                        name={field.name}
-                        onBlur={field.handleBlur}
-                        type="button"
-                        aria-invalid={isInvalid}
-                        className={cn(
-                          buttonVariants({ variant: "outline" }),
-                          "w-full justify-between font-normal",
-                          !selectedDate && "text-muted-foreground",
-                        )}
-                      >
-                        {selectedDate
-                          ? displayDateFormatter.format(selectedDate)
-                          : "Selecciona una fecha"}
-                        <CalendarIcon className="size-4 opacity-50" />
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={(date) => {
-                            field.handleChange(
-                              date ? toLocalDateString(date) : "",
-                            );
-                            field.handleBlur();
-                          }}
-                          captionLayout="dropdown"
-                          defaultMonth={selectedDate ?? new Date(2000, 0, 1)}
-                          startMonth={new Date(1900, 0, 1)}
-                          endMonth={new Date()}
-                          disabled={{ after: new Date() }}
-                          locale={es}
-                          autoFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}

@@ -15,19 +15,31 @@ import {
 } from "@meteor/ui/components/field";
 import { Input } from "@meteor/ui/components/input";
 import { useForm } from "@tanstack/react-form";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
+import { authClient } from "@/lib/auth-client";
 import { type LoginInput, LoginSchema } from "../schemas/login";
 
 const DEFAULT_VALUES: LoginInput = { email: "", password: "" };
 
 export function LoginForm() {
+  const navigate = useNavigate();
+
   const form = useForm({
     defaultValues: DEFAULT_VALUES,
     validators: { onSubmit: LoginSchema },
-    onSubmit: async () => {
-      // TODO(auth wiring): reemplazar por authClient.signIn.email
-      await new Promise((resolve) => setTimeout(resolve, 800));
+    onSubmit: async ({ value }) => {
+      const { error } = await authClient.signIn.email({
+        email: value.email,
+        password: value.password,
+      });
+      if (error) {
+        // AUTH.md: nunca enumerar emails, mensaje genérico.
+        toast.error("Credenciales inválidas");
+        return;
+      }
+      navigate({ to: "/" });
     },
   });
 
